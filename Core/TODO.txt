@@ -9,3 +9,4 @@
 	- hash size = baseHashSize*2^x (base 128 = 0 , current 256 hash = 1, futureproof hash 512 = 2, 1024 = 3)
 	- Algo
 	- target bits
+- Make it SOLID

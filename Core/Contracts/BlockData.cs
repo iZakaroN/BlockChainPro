@@ -2,6 +2,7 @@
 
 namespace BlockChanPro.Core.Contracts
 {
+    //TODO: Rename to block header and move transactions into signed block
 	public class BlockData
 	{
 		public static long BlockTime = TimeSpan.FromSeconds(5).Ticks;
@@ -28,7 +29,8 @@ namespace BlockChanPro.Core.Contracts
 
 		public int Index { get; }
 	    public long TimeStamp { get; }
-	    public string Message { get; }
+        // TODO: move message to transaction
+        public string Message { get; }
 		public Transaction[] Transactions { get; }
 		public Hash PreviousHash { get; }
 

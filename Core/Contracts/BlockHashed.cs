@@ -1,20 +1,14 @@
 namespace BlockChanPro.Core.Contracts
 {
-	public class BlockHashed
+    public class BlockHashed
 	{
-		public BlockHashed()
-		{
-			
-		}
-		public BlockHashed(BlockSigned block, Hash nounce, Hash hash)
+		public BlockHashed(BlockSigned block, HashTarget hashTarget)
 		{
             Signed = block;
-			Nounce = nounce;
-			Hash = hash;
+			HashTarget = hashTarget;
 		}
 
 		public BlockSigned Signed { get; }
-		public Hash Nounce { get; }
-		public Hash Hash { get; }
+	    public HashTarget HashTarget { get; }
 	}
 }

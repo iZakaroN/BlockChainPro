@@ -4,22 +4,22 @@ using Newtonsoft.Json;
 
 namespace BlockChanPro.Core.Contracts
 {
-    public class TargetHashBits
+    public class HashBits
     {
-        public static readonly TargetHashBits Genesis = new TargetHashBits(0, 0xffffffffffffff);
+        public static readonly HashBits GenesisTarget = new HashBits(0, 0xffffffffffffff);
         public const int OffsetByteSize = sizeof(byte);
         public const int OffsetBitSize = sizeof(byte) * 8;
         private const int OffsetShift = (sizeof(ulong) - OffsetByteSize) * 8;
         public const ulong OffsetMask = ~0ul << OffsetShift;
         private const int FractionBits = OffsetShift;
-        private const byte OffsetMax = Hash.BitLength - FractionBits;
+        public const byte OffsetMax = Hash.BitLength - FractionBits;
 
-        public TargetHashBits(ulong value)
+        public HashBits(ulong value)
         {
             Value = value;
         }
 
-        public TargetHashBits(byte offset, ulong fraction)
+        public HashBits(byte offset, ulong fraction)
         {
             Contract.Requires(offset <= OffsetMax, nameof(offset));
             Contract.Requires((fraction & ~OffsetMask) == fraction, nameof(fraction));
@@ -72,7 +72,7 @@ namespace BlockChanPro.Core.Contracts
             return result;
         }
 
-        public TargetHashBits Adjust(long currentTimeDelta, long targetTimeDelta)
+        public HashBits Adjust(long currentTimeDelta, long targetTimeDelta)
         {
             if (targetTimeDelta != currentTimeDelta)
             {
@@ -86,9 +86,9 @@ namespace BlockChanPro.Core.Contracts
                         offset -= 1;
                     }
 
-                    // TODO: optimize using intermediate bit shifts instead of decimal calulations
+                    // TODO: optimize using intermediate bit shifts instead of floating calulations
                     //Because fraction offset was moved above the target (by power of 2), 
-                    //now reduce fraction itself with (1/2 < fractionMultiplyer < 1) to match the exact target
+                    //reduce fraction itself with (1/2 < fractionMultiplyer < 1) to match the exact target
                     var fractionMultiplyer = (decimal)currentTimeDelta / targetTimeDelta;
                     //Because last byte of the fraction is reserved for offset, there will be a space for one bit shift
                     //so fraction can be normalized even if high bit goes away from fraction reduction
@@ -103,12 +103,12 @@ namespace BlockChanPro.Core.Contracts
                         offset += 1;
                     }
 
-                    // TODO: optimize using intermediate bit shifts instead of decimal calulations
-                    //Because fraction offset was moved below the target (by power of 2), 
-                    //now increase fraction itself with (1 < fractionMultiplyer < 2) to match the exact target
-                    var fractionMultiplyer = (decimal)currentTimeDelta / targetTimeDelta;
-                    //Because last byte of the fraction is reserved for offset, there will be a space for one bit if necessary
-                    fraction = (ulong)(GetFraction() * fractionMultiplyer);
+					// TODO: optimize using intermediate bit shifts instead of floating calulations
+					//Because fraction offset was moved below the target (by power of 2), 
+					//increase fraction itself with (1 < fractionMultiplyer < 2) to match the exact target
+					var fractionMultiplyer = (decimal)currentTimeDelta / targetTimeDelta;
+					//Because last byte of the fraction is reserved for offset, there will be a space for one bit if necessary
+					fraction = (ulong)(GetFraction() * fractionMultiplyer);
 
                 }
                 // In case fraction was increased Adjust(Normalize) fraction/offset to match their masks
@@ -119,10 +119,10 @@ namespace BlockChanPro.Core.Contracts
                 }
                 offset = GetBitOffset() + offset;
                 if (offset<0)
-                    return Genesis;
+                    return GenesisTarget;
                 else if (offset > OffsetMax)
-                    return new TargetHashBits(OffsetMax, fraction >> (offset - OffsetMax));
-                return new TargetHashBits((byte)offset, fraction);
+                    return new HashBits(OffsetMax, fraction >> (offset - OffsetMax));
+                return new HashBits((byte)offset, fraction);
 
             }
             return this;

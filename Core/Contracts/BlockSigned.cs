@@ -2,20 +2,16 @@ namespace BlockChanPro.Core.Contracts
 {
 	public class BlockSigned
 	{
-		public BlockSigned()
-		{
-			
-		}
-		public BlockSigned(BlockData block, Address stamp, TargetHashBits targetHashBits)
+		public BlockSigned(BlockData block, Address stamp, HashBits hashTargetBits)
 		{
             Data = block;
 			Stamp = stamp;
-            TargetHashBits = targetHashBits;
+            HashTargetBits = hashTargetBits;
 		}
 
 		public BlockData Data { get; }
         //TODO: Change with public key and signed merkel tree root hash
 		public Address Stamp { get; }
-		public TargetHashBits TargetHashBits { get; }
+		public HashBits HashTargetBits { get; }
 	}
 }

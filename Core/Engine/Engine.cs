@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using BlockChanPro.Core.Contracts;
 
 namespace BlockChanPro.Core.Engine
 {
-	public class BlockHashedIdentity
-	{
-			
-	}
-	//TODO: Split on smaller pieces, like 
+	//TODO: Split on smaller pieces
     public class Engine
     {
-		private readonly Cryptography _cryptography = new Cryptography();
+        //TODO: inject
+		private static readonly Cryptography Cryptography = new Cryptography();
+		private static readonly MinerFactory MinerFactory = new MinerFactory(Cryptography);
+
 		private List<BlockHashed> Chain { get; }
 		//TODO: Order transactions in transaction.Sender->transaction.Id
 		private List<Transaction> PendingTransactions { get; }
@@ -27,7 +26,8 @@ namespace BlockChanPro.Core.Engine
 	    {
 			//Just start from beginning 
 		    Chain.Clear();
-		    var genesisBlock = _cryptography.ProcessBlock(BlockData.Genesis, Address.God, TargetHashBits.Genesis);
+			var genesisMiner = MinerFactory.Create(Address.God, BlockData.Genesis, HashBits.GenesisTarget); 
+		    var genesisBlock = genesisMiner.Start(new CancellationToken());
 
 			Chain.Add(genesisBlock);
 		    return genesisBlock;
@@ -47,36 +47,15 @@ namespace BlockChanPro.Core.Engine
 			    return null;
 		    var lastBlock = Chain[currentBlocks - 1];
 
-			var mineReward = new[]
-		    {
-			    new Transaction(Address.God, new[]
-			    {
-				    new Recipient(mineAddress, CalulateBlockReward(lastBlock)),
-			    }, 0)
-		    };
-		    var blockToProcess = new BlockData(
-			    lastBlock.Signed.Data.Index + 1,
-			    DateTime.UtcNow.Ticks,
-			    "Some message",
-			    mineReward.Union(PendingTransactions).ToArray(),
-			    lastBlock.Hash);
+		    var miner = MinerFactory.Create(mineAddress, lastBlock, PendingTransactions);
+		    var block = miner.Start(new CancellationToken());
 
-		    var targetHashBits = 
-			    lastBlock.Signed.TargetHashBits.Adjust(blockToProcess.TimeStamp - lastBlock.Signed.Data.TimeStamp, BlockData.BlockTime);
-
-		    var result = _cryptography.ProcessBlock(blockToProcess, mineAddress, targetHashBits);
-			Chain.Add(result);
+			Chain.Add(block);
             PendingTransactions.Clear();
-            return result;
+            return block;
 
 	    }
 
-	    private long CalulateBlockReward(BlockHashed lastBlock)
-	    {
-		    int rewardReduction = lastBlock.Signed.Data.Index / Transaction.BlockCountRewardReduction;
-
-			return Transaction.GenesisReward >> rewardReduction;
-	    }
 
 	    public class TransactionsInfo
 	    {

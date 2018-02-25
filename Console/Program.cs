@@ -194,7 +194,7 @@ namespace BlockChanPro.Console
 				var passwordConfirm = System.Console.ReadLine();
 				if (passwordHash == passwordConfirm.Hash())
 				{
-					_address = new Address(arg.Hash());
+					_address = new Address(passwordHash);
 					CommandFinished(_address.SerializeToJson(Formatting.Indented));
 					return;
 				}

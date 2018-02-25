@@ -1,9 +1,9 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using BlockChanPro.Core.Contracts;
 using BlockChanPro.Core.Serialization;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Tests
+namespace BlockChanPro.MSTESTS
 {
     [TestClass]
     public class HashTests
@@ -184,7 +184,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_ToHash_Offset0_Validate_Segments()
         {
-            var thb = new TargetHashBits(0, 0x123456789abcde);
+            var thb = new HashBits(0, 0x123456789abcde);
 
             var hash = thb.ToHash();
 
@@ -201,7 +201,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_ToHash_Offset1_Validate_Segments()
         {
-            var thb = new TargetHashBits(1, 0xffffffffffffff);
+            var thb = new HashBits(1, 0xffffffffffffff);
 
             var hash = thb.ToHash();
 
@@ -219,7 +219,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_ToHash_Offset4_Validate_Segments()
         {
-            var thb = new TargetHashBits(4, 0xffffffffffffff);
+            var thb = new HashBits(4, 0xffffffffffffff);
 
             var hash = thb.ToHash();
 
@@ -237,7 +237,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_ToHash_Offset8_Validate_Segments()
         {
-            var thb = new TargetHashBits(8, 0x123456789abcde);
+            var thb = new HashBits(8, 0x123456789abcde);
 
             var hash = thb.ToHash();
 
@@ -255,7 +255,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_ToHash_Offset193_Validate_Segments()
         {
-            var thb = new TargetHashBits(193, 0xffffffffffffff);
+            var thb = new HashBits(193, 0xffffffffffffff);
 
             var hash = thb.ToHash();
 
@@ -273,7 +273,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_ToHash_Offset196_Validate_Segments()
         {
-            var thb = new TargetHashBits(196, 0xffffffffffffff);
+            var thb = new HashBits(196, 0xffffffffffffff);
 
             var hash = thb.ToHash();
 
@@ -292,7 +292,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_ToHash_Offset200_Validate_Segments()
         {
-            var thb = new TargetHashBits(200, 0x123456789abcde);
+            var thb = new HashBits(200, 0x123456789abcde);
 
             var hash = thb.ToHash();
 
@@ -311,7 +311,7 @@ namespace Tests
         [ExpectedException(typeof(ArgumentException))]
         public void TargetHashBits_ToHash_Offset201_Validate_ArgumentException()
         {
-            var thb = new TargetHashBits(201, 0xffffffffffffff);
+            var thb = new HashBits(201, 0xffffffffffffff);
 
             var hash = thb.ToHash();
 
@@ -330,7 +330,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_SixTime_Validate_OffsetAndFraction()
         {
-            var thb = new TargetHashBits(6, 0xffffffffffffff);
+            var thb = new HashBits(6, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(6, 1);
 
             Assert.AreEqual(3, adjustedthb.GetBitOffset());
@@ -340,7 +340,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_QuadTime_Validate_OffsetAndFraction()
         {
-            var thb = new TargetHashBits(6, 0xffffffffffffff);
+            var thb = new HashBits(6, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(4, 1);
 
             Assert.AreEqual(4, adjustedthb.GetBitOffset());
@@ -350,7 +350,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_TripleTime_Validate_Offset()
         {
-            var thb = new TargetHashBits(6, 0xffffffffffffff);
+            var thb = new HashBits(6, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(3, 1);
 
             Assert.AreEqual(4, adjustedthb.GetBitOffset());
@@ -360,7 +360,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_DoublePlusTime_Validate_OffsetAndFraction()
         {
-            var thb = new TargetHashBits(2, 0xffffffffffffff);
+            var thb = new HashBits(2, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(2001, 1000);
 
             Assert.AreEqual(0, adjustedthb.GetBitOffset());
@@ -370,7 +370,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_DoubleTime_Validate_OffsetAndFraction()
         {
-            var thb = new TargetHashBits(2, 0xffffffffffffff);
+            var thb = new HashBits(2, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(2, 1);
 
             Assert.AreEqual(1, adjustedthb.GetBitOffset());
@@ -380,7 +380,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_DoubleMinusTime_HalfFraction_Validate_OffsetAndFraction()
         {
-            var thb = new TargetHashBits(2, 0x88888888888888);
+            var thb = new HashBits(2, 0x88888888888888);
             var adjustedthb = thb.Adjust(1999, 1000);
 
             Assert.AreEqual(1, adjustedthb.GetBitOffset());
@@ -390,7 +390,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_DoubleMinusTime_FullFraction_Validate_OffsetAndFraction()
         {
-            var thb = new TargetHashBits(2, 0xffffffffffffff);
+            var thb = new HashBits(2, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(1999, 1000);
 
             Assert.AreEqual(1, adjustedthb.GetBitOffset());
@@ -400,7 +400,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_ThirthHalfTime_Validate_Offset()
         {
-            var thb = new TargetHashBits(5, 0xffffffffffffff);
+            var thb = new HashBits(5, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(3000, 2000);
 
             Assert.AreEqual(4, adjustedthb.GetBitOffset());
@@ -410,7 +410,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_SameTime_Validate_OffsetAndFraction()
         {
-            var thb = new TargetHashBits(6, 0xffffffffffffff);
+            var thb = new HashBits(6, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(1, 1);
 
             Assert.AreEqual(6, adjustedthb.GetBitOffset());
@@ -420,7 +420,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_TwoThirthTime_Validate_Offset()
         {
-            var thb = new TargetHashBits(6, 0xffffffffffffff);
+            var thb = new HashBits(6, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(2, 3);
 
             Assert.AreEqual(6, adjustedthb.GetBitOffset());
@@ -430,7 +430,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_HalfPlusTime_Validate_OffsetAndFraction()
         {
-            var thb = new TargetHashBits(6, 0xffffffffffffff);
+            var thb = new HashBits(6, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(201, 100);
 
             Assert.AreEqual(4, adjustedthb.GetBitOffset());
@@ -440,7 +440,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_HalfTime_Validate_OffsetAndFraction()
         {
-            var thb = new TargetHashBits(6, 0xffffffffffffff);
+            var thb = new HashBits(6, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(100, 200);
             var hash = adjustedthb.ToHash().SerializeToJson();
             Console.WriteLine($"o({adjustedthb.GetBitOffset()}),\tf(0x{adjustedthb.GetFraction():X16}),\th({hash})");
@@ -452,7 +452,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_HalfMinusTime_Validate_OffsetAndFraction()
         {
-            var thb = new TargetHashBits(6, 0xffffffffffffff);
+            var thb = new HashBits(6, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(99, 200);
             var hash = adjustedthb.ToHash().SerializeToJson();
             Console.WriteLine($"o({adjustedthb.GetBitOffset()}),\tf(0x{adjustedthb.GetFraction():X16}),\th({hash})");
@@ -464,7 +464,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_OneThirthTime_Validate_Offset()
         {
-            var thb = new TargetHashBits(6, 0xffffffffffffff);
+            var thb = new HashBits(6, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(1, 3);
 
             Assert.AreEqual(7, adjustedthb.GetBitOffset());
@@ -474,7 +474,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_OneForthTime_Validate_OffsetAndFraction()
         {
-            var thb = new TargetHashBits(6, 0xffffffffffffff);
+            var thb = new HashBits(6, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(1, 4);
 
             Assert.AreEqual(8, adjustedthb.GetBitOffset());
@@ -484,7 +484,7 @@ namespace Tests
         [TestMethod]
         public void TargetHashBits_Adjust_OneSixthTime_Validate_OffsetAndFraction()
         {
-            var thb = new TargetHashBits(6, 0xffffffffffffff);
+            var thb = new HashBits(6, 0xffffffffffffff);
             var adjustedthb = thb.Adjust(1, 6);
 
             Assert.AreEqual(8, adjustedthb.GetBitOffset());
@@ -495,7 +495,7 @@ namespace Tests
         public void TargetHashBits_Adjust__Smoke_ConsoleOutput()
         {
             var target = 10;
-            var thb = new TargetHashBits(100, 0xffffffffffffff);
+            var thb = new HashBits(100, 0xffffffffffffff);
             //var thb = new TargetHashBits(100, 0x88888888888888);
 
             for (int i = 1; i <= 40; i++)
