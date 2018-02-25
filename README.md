@@ -1,2 +1,2 @@
 # BlockChainPro
-Block chain prototype
+Block chain prototype created for educational and experiemntal purposes
