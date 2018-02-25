@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core;
-using Core.Contracts;
-using Core.Serialization;
+using BlockChanPro.Core.Contracts;
+using BlockChanPro.Core.Engine;
+using BlockChanPro.Core.Serialization;
 using Newtonsoft.Json;
 
-namespace BlockChainPrototypeConsole
+namespace BlockChanPro.Console
 {
 	class Program
 	{
@@ -54,8 +54,8 @@ namespace BlockChainPrototypeConsole
 
 			while (!_exitConsole)
 			{
-				Console.Write(">");
-				var userInput = Console.ReadLine().Trim();
+				System.Console.Write(">");
+				var userInput = System.Console.ReadLine().Trim();
 				var commandEndPosition = userInput.IndexOf(' ');
 				var command = (commandEndPosition != -1) ? userInput.Substring(0, commandEndPosition) : userInput;
 				var commandOptions = (commandEndPosition != -1) ? userInput.Substring(commandEndPosition) : "";
@@ -65,9 +65,9 @@ namespace BlockChainPrototypeConsole
 				}
 				else
 				{
-					Console.WriteLine($"Unknown command '{command}'. Valid commands are:");
+					System.Console.WriteLine($"Unknown command '{command}'. Valid commands are:");
 					var commandsHelp = CommandParsers.Keys.Aggregate("", (s, c) => s + (s == "" ? "" : ", ") + c);
-					Console.WriteLine(commandsHelp);
+					System.Console.WriteLine(commandsHelp);
 				}
 			}
 		}
@@ -111,7 +111,7 @@ namespace BlockChainPrototypeConsole
 				CommandFinished($"Block mined: {block.SerializeToJson(Formatting.Indented)}");
 				return;
 			}
-			Console.WriteLine("Set current currency address first");
+			System.Console.WriteLine("Set current currency address first");
 		}
 
 		private static void Genesis(string arg)
@@ -142,13 +142,13 @@ namespace BlockChainPrototypeConsole
 						PendingRecipients.Add(new Recipient(targetAddress, amount));
 						CommandFinished(recipient.SerializeToJson(Formatting.Indented));
 						return;
-					} else Console.WriteLine("Cannot parse the amount");
+					} else System.Console.WriteLine("Cannot parse the amount");
 				}
-				else Console.WriteLine("Invalid address");
+				else System.Console.WriteLine("Invalid address");
 			}
-			else Console.WriteLine("Invalid number of arguments");
-			Console.WriteLine("Description: Prepare currency to be send to target address. After multiple send operations are prepared, transaction need to be confirmed");
-			Console.WriteLine("Usage: >send [targetAddress] [decimal amount]");
+			else System.Console.WriteLine("Invalid number of arguments");
+			System.Console.WriteLine("Description: Prepare currency to be send to target address. After multiple send operations are prepared, transaction need to be confirmed");
+			System.Console.WriteLine("Usage: >send [targetAddress] [decimal amount]");
 		}
 
 		private static void Confirm(string arg)
@@ -168,15 +168,15 @@ namespace BlockChainPrototypeConsole
 							CommandFinished(result.SerializeToJson(Formatting.Indented));
 							return;
 						}
-						else Console.WriteLine("Password do not match");
+						else System.Console.WriteLine("Password do not match");
 					} else
-						Console.WriteLine("Set current currency address first");
+						System.Console.WriteLine("Set current currency address first");
 				}
-				else Console.WriteLine("Cannot parse the fee");
+				else System.Console.WriteLine("Cannot parse the fee");
 			}
-			else Console.WriteLine("Invalid number of arguments");
-			Console.WriteLine("Description: Confirm a transaction and send a transaction with all the amounts from pending send operations");
-			Console.WriteLine("Usage: >confirm [fee] [password]");
+			else System.Console.WriteLine("Invalid number of arguments");
+			System.Console.WriteLine("Description: Confirm a transaction and send a transaction with all the amounts from pending send operations");
+			System.Console.WriteLine("Usage: >confirm [fee] [password]");
 		}
 		#endregion Transactions
 
@@ -190,19 +190,19 @@ namespace BlockChainPrototypeConsole
 					Warrning(
 						"Currently you cannot use passwords that contains SPACE because of console parameter parsing. Consider use password without space into it");
 				var passwordHash = arg.Hash();
-				Console.Write("Confirm password: ");
-				var passwordConfirm = Console.ReadLine();
+				System.Console.Write("Confirm password: ");
+				var passwordConfirm = System.Console.ReadLine();
 				if (passwordHash == passwordConfirm.Hash())
 				{
 					_address = new Address(arg.Hash());
 					CommandFinished(_address.SerializeToJson(Formatting.Indented));
 					return;
 				}
-				else Console.WriteLine("Password confirmation do not match original password");
+				else System.Console.WriteLine("Password confirmation do not match original password");
 			}
-			else Console.WriteLine("Invalid number of arguments");
-			Console.WriteLine("Description: Create a new address and change it to it current");
-			Console.WriteLine("Usage: >CreateAddress [password]");
+			else System.Console.WriteLine("Invalid number of arguments");
+			System.Console.WriteLine("Description: Create a new address and change it to it current");
+			System.Console.WriteLine("Usage: >CreateAddress [password]");
 		}
 
 		private static void ChangeAddress(string arg)
@@ -213,9 +213,9 @@ namespace BlockChainPrototypeConsole
 				_address = new Address(arg.Hash());
 				CommandFinished(_address.SerializeToJson(Formatting.Indented));
 			}
-			else Console.WriteLine("Invalid number of arguments");
-			Console.WriteLine("Description: Change the current currency address");
-			Console.WriteLine("Usage: >ChangeAddress [password]");
+			else System.Console.WriteLine("Invalid number of arguments");
+			System.Console.WriteLine("Description: Change the current currency address");
+			System.Console.WriteLine("Usage: >ChangeAddress [password]");
 		}
 
 		#endregion Address
@@ -223,13 +223,13 @@ namespace BlockChainPrototypeConsole
 
 		private static void CommandFinished(string commandResult)
 		{
-			Console.WriteLine("Accepted -> Result:");
-			Console.WriteLine(commandResult);
+			System.Console.WriteLine("Accepted -> Result:");
+			System.Console.WriteLine(commandResult);
 		}
 
 		private static void Warrning(string s)
 		{
-			Console.WriteLine(s);
+			System.Console.WriteLine(s);
 		}
 
 	}

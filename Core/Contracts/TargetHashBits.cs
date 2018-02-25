@@ -1,8 +1,8 @@
 ﻿using System.Linq;
-using Core.Serialization;
+using BlockChanPro.Core.Serialization;
 using Newtonsoft.Json;
 
-namespace Core.Contracts
+namespace BlockChanPro.Core.Contracts
 {
     public class TargetHashBits
     {

@@ -31,7 +31,7 @@ SOFTWARE. */
 
 using System;
 
-namespace Core.Contracts
+namespace BlockChanPro.Core.Contracts
 {
     /// <summary>
     /// Indicates that the value of the marked element could be <c>null</c> sometimes,

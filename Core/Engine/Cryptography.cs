@@ -1,8 +1,8 @@
 ﻿using System.Security.Cryptography;
-using Core.Contracts;
-using Core.Serialization;
+using BlockChanPro.Core.Contracts;
+using BlockChanPro.Core.Serialization;
 
-namespace Core
+namespace BlockChanPro.Core.Engine
 {
     public class Cryptography
     {

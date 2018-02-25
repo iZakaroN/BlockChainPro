@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Core.Serialization;
 
-namespace Core.Contracts
+namespace BlockChanPro.Core.Contracts
 {
 	public class BlockData
 	{

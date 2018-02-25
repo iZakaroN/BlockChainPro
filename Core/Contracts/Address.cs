@@ -1,7 +1,6 @@
-using System;
-using Core.Serialization;
+using BlockChanPro.Core.Engine;
 
-namespace Core.Contracts
+namespace BlockChanPro.Core.Contracts
 {
 	public struct Address
 	{

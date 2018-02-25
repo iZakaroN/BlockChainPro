@@ -1,11 +1,11 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Linq;
+using Newtonsoft.Json;
 
 /// <summary>
 /// Source: https://stackoverflow.com/questions/11829035/newton-soft-json-jsonserializersettings-for-object-with-property-as-byte-array
 /// </summary>
-namespace Core.Serialization
+namespace BlockChanPro.Core.Serialization
 {
     public class BytesToHexConverter : JsonConverter
     {

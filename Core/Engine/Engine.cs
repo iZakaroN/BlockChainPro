@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Contracts;
+using BlockChanPro.Core.Contracts;
 
-namespace Core
+namespace BlockChanPro.Core.Engine
 {
 	public class BlockHashedIdentity
 	{

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text;
-using Core.Contracts;
+using BlockChanPro.Core.Contracts;
 using Newtonsoft.Json;
 
-namespace Core.Serialization
+namespace BlockChanPro.Core.Serialization
 {
 	public static class Extensions
 	{

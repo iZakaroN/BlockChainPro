@@ -1,4 +1,4 @@
-namespace Core.Contracts
+namespace BlockChanPro.Core.Contracts
 {
 	public class Recipient
 	{

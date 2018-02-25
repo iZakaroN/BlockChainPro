@@ -1,7 +1,7 @@
-using Core.Contracts;
-using Core.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using BlockChanPro.Core.Contracts;
+using BlockChanPro.Core.Serialization;
 
 namespace Tests
 {

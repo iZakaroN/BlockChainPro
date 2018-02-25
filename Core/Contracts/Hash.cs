@@ -1,9 +1,9 @@
-using Core.Serialization;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using BlockChanPro.Core.Serialization;
+using Newtonsoft.Json;
 
-namespace Core.Contracts
+namespace BlockChanPro.Core.Contracts
 {
     public struct Hash
 	{
