@@ -5,6 +5,8 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <ApplicationIcon />
     <StartupObject />
+    <AssemblyName>BCPC</AssemblyName>
+    <RootNamespace>BlockChanPro.Console</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

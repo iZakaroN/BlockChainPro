@@ -1,9 +1,11 @@
 ﻿- Use optimized binary serialization
 - Transactions:
-  - Signing (Asymmetric) of transactions
-  - Validation
+	- Merkel tree hashing
+	- Validation
 - Blocks validation
+	- Signing
 - P2P sync
 - Abstract hash size and algo (use it for different performance/security scenarious)
 	- hash size = baseHashSize*2^x (base 128 = 0 , current 256 hash = 1, futureproof hash 512 = 2, 1024 = 3)
+	- Algo
 	- target bits

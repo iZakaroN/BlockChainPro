@@ -4,6 +4,10 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <AssemblyName>BlockChanPro.MSTESTS</AssemblyName>
+
+    <RootNamespace>BlockChanPro.MSTESTS</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

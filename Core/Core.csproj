@@ -2,11 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <AssemblyName>BlockChanPro.Core</AssemblyName>
+    <RootNamespace>BlockChanPro.Core</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Folder Include="Engine\" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
