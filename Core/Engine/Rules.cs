@@ -14,7 +14,8 @@ namespace BlockChanPro.Core.Engine
 	    public static HashBits CalculateTargetHash(BlockHashed lastBlock, BlockData blockToProcess)
 	    {
 		    var targetHashBits =
-			    lastBlock.Signed.HashTargetBits.Adjust(blockToProcess.TimeStamp - lastBlock.Signed.Data.TimeStamp,
+			    lastBlock.Signed.HashTargetBits.Adjust(
+				    blockToProcess.TimeStamp - lastBlock.Signed.Data.TimeStamp,
 				    BlockData.BlockTime);
 		    return targetHashBits;
 	    }

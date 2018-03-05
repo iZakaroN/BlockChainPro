@@ -18,22 +18,24 @@ namespace BlockChanPro.Console
 				{"-h", Help}
 			};
 
-		private static readonly Dictionary<string, Action<string>> CommandParsers = new Dictionary<string, Action<string>>(StringComparer.OrdinalIgnoreCase)
+		private static readonly Dictionary<string, Action<Queue<string>>> CommandParsers = new Dictionary<string, Action<Queue<string>>>(StringComparer.OrdinalIgnoreCase)
 		{
-			{"Exit", Exit},
-			{"Genesis", Genesis },
-			{"Mine", Mine },
-			{"Info", Info },
+			{"Wallet.Create", WalletCreate },
+			{"Wallet.Recover", WalletRecover },
+			{"Mine.Start", MineStart },
+			{"Mine.Stop", MineStop },
 			{"Send", Send },
 			{"Confirm", Confirm },
-			{"CreateAddress", CreateAddress },
-			{"ChangeAddress", ChangeAddress }
+			{"Info", Info },
+			{"Exit", Exit},
 
 		};
 
+		private static readonly Cryptography Cryptography = new Cryptography();
+
 		private static bool _exitConsole;
 		private static Address? _address;
-		private static Engine _engine = new Engine();
+		private static readonly Engine Engine = new Engine(new Console());
 
 		static void Main(string[] args)
 		{
@@ -52,24 +54,37 @@ namespace BlockChanPro.Console
 				parsedParameters.Add(paramName);
 			}
 
+			//Just for faster testing
+			_address = new Address("test".Hash());
+			Console.OutMarker();
 			while (!_exitConsole)
 			{
-				System.Console.Write(">");
-				var userInput = System.Console.ReadLine().Trim();
-				var commandEndPosition = userInput.IndexOf(' ');
-				var command = (commandEndPosition != -1) ? userInput.Substring(0, commandEndPosition) : userInput;
-				var commandOptions = (commandEndPosition != -1) ? userInput.Substring(commandEndPosition) : "";
-				if (CommandParsers.TryGetValue(command, out var commandAction))
+				var userInput = new Queue<string>(SplitCommandLine(System.Console.ReadLine()));
+				if (userInput.TryDequeue(out var command) && CommandParsers.TryGetValue(command, out var commandAction))
 				{
-					commandAction(commandOptions?.Trim());
+					commandAction(userInput);
 				}
 				else
 				{
-					System.Console.WriteLine($"Unknown command '{command}'. Valid commands are:");
-					var commandsHelp = CommandParsers.Keys.Aggregate("", (s, c) => s + (s == "" ? "" : ", ") + c);
-					System.Console.WriteLine(commandsHelp);
+					Console.OutLine($"Unknown command '{command}'. Valid commands are:");
+					Help(userInput);
 				}
 			}
+		}
+
+		public static IEnumerable<string> SplitCommandLine(string commandLine)
+		{
+			var inQuotes = false;
+
+			return commandLine.Split(c =>
+				{
+					if (c == '\"')
+						inQuotes = !inQuotes;
+
+					return !inQuotes && c == ' ';
+				})
+				.Select(arg => arg.Trim().Trim('\"'))
+				.Where(arg => !string.IsNullOrEmpty(arg));
 		}
 
 		private static void ParseAddress(Queue<string> arguments)
@@ -95,101 +110,131 @@ namespace BlockChanPro.Console
 
 		private static void Help(Queue<string> arguments)
 		{
-			_exitConsole = true;
+			var commandsHelp = CommandParsers.Keys.Aggregate("", (s, c) => s + (s == "" ? "" : ", ") + c);
+			Console.OutLine(commandsHelp);
 		}
 
-		private static void Exit(string arg)
+		private static void Exit(Queue<string> arg)
 		{
+			Exit(arg.Aggregate("", (s, v) => $"{s} {v}"));
 			_exitConsole = true;
 		}
 
-		private static void Mine(string arg)
+		private static void Exit(string exitMessage)
+		{
+			Console.OutLine(exitMessage);
+			_exitConsole = true;
+		}
+
+		private static void MineStart(Queue<string> arg)
 		{
 			if (_address.HasValue)
 			{
-				var block = _engine.Mine(_address.Value);
-				CommandFinished($"Block mined: {block.SerializeToJson(Formatting.Indented)}");
+				int? threads = null;
+				if (arg.TryDequeue(out var threadsArg))
+					if (!Int32.TryParse(threadsArg, out var t))
+					{
+						Console.OutLine("Cannot parse number of cores");
+						Console.OutLine("Description: Start mining. If number of threads is not specified a number logical processor are used specified");
+						Console.OutLine("Usage: > Mine.Start <number of threads>");
+						return;
+					}
+					else
+						threads = t;
+				Engine.Mine(_address.Value, threads);
+				CommandFinished($"Mining started in favor to address {_address.Value.Value.SerializeToJson()}");
+				//CommandFinished($"Block mined: {block.SerializeToJson(Formatting.Indented)}");
 				return;
 			}
-			System.Console.WriteLine("Set current currency address first");
+
+			NoAddress();
 		}
 
-		private static void Genesis(string arg)
+		private static void MineStop(Queue<string> arg)
 		{
-			var genesisBlock = _engine.Genesis();
+			Engine.MineStop();
+		}
+
+		private static void NoAddress()
+		{
+			Console.OutLine("Recover or Create an address first");
+		}
+
+		/*private static void Genesis(Queue<string> arg)
+		{
+			var genesisBlock = _engine.MineGenesis();
 			CommandFinished($"Genesis block created: {genesisBlock.SerializeToJson(Formatting.Indented)}");
-		}
+		}*/
 
-		private static void Info(string arg)
+		private static void Info(Queue<string> arg)
 		{
-			var result = _engine.CalulateTransactionsInfo();
+			var result = Engine.CalulateTransactionsInfo();
 			CommandFinished(result.SerializeToJson(Formatting.Indented));
 		}
 
 		#region Transactions
 		private static readonly List<Recipient> PendingRecipients = new List<Recipient>();
 
-		private static void Send(string arg)
+		private static void Send(Queue<string> arg)
 		{
-			var arguments = arg?.Split(' ');
-			if (arguments?.Length == 2)
+			if (arg?.Count == 2)
 			{
-				if (Address.TryParse(arguments[0], out var targetAddress))
+				if (Address.TryParse(arg.Dequeue(), out var targetAddress))
 				{
-					if (long.TryParse(arguments[1], out var amount))
+					if (long.TryParse(arg.Dequeue(), out var amount))
 					{
 						var recipient = new Recipient(targetAddress, amount);
 						PendingRecipients.Add(new Recipient(targetAddress, amount));
 						CommandFinished(recipient.SerializeToJson(Formatting.Indented));
 						return;
-					} else System.Console.WriteLine("Cannot parse the amount");
+					} else Console.OutLine("Cannot parse the amount");
 				}
-				else System.Console.WriteLine("Invalid address");
+				else Console.OutLine("Invalid address");
 			}
-			else System.Console.WriteLine("Invalid number of arguments");
-			System.Console.WriteLine("Description: Prepare currency to be send to target address. After multiple send operations are prepared, transaction need to be confirmed");
-			System.Console.WriteLine("Usage: >send [targetAddress] [decimal amount]");
+			else Console.OutLine("Invalid number of arguments");
+			Console.OutLine("Description: Prepare currency to be send to target address. After multiple send operations are prepared, transaction need to be confirmed");
+			Console.OutLine("Usage: >send <targetAddress> <decimal amount>");
 		}
 
-		private static void Confirm(string arg)
+		private static void Confirm(Queue<string> arg)
 		{
-			var arguments = arg.Split(' ');
-			if (arguments.Length == 2)
+			if (arg.Count == 2)
 			{
-				if (decimal.TryParse(arguments[0], out var fee))
+				if (decimal.TryParse(arg.Dequeue(), out var fee))
 				{
-					var hashedPassword = arguments[1].Hash();
+					var hashedPassword = arg.Dequeue().Hash();
 					if (_address.HasValue)
 					{
 						if (hashedPassword == _address.Value.Value)
 						{
-							var result = new Transaction(_address.Value, PendingRecipients.ToArray(), fee);
-							_engine.SendTransaction(result);
+							var result = Cryptography.Sign(
+								new Transaction(_address.Value, PendingRecipients.ToArray(), fee),
+								_address.Value);
+
+							Engine.SendTransaction(result);
 							CommandFinished(result.SerializeToJson(Formatting.Indented));
 							return;
 						}
-						else System.Console.WriteLine("Password do not match");
+						else Console.OutLine("Password do not match");
 					} else
-						System.Console.WriteLine("Set current currency address first");
+						NoAddress();
 				}
-				else System.Console.WriteLine("Cannot parse the fee");
+				else Console.OutLine("Cannot parse the fee");
 			}
-			else System.Console.WriteLine("Invalid number of arguments");
-			System.Console.WriteLine("Description: Confirm a transaction and send a transaction with all the amounts from pending send operations");
-			System.Console.WriteLine("Usage: >confirm [fee] [password]");
+			else Console.OutLine("Invalid number of arguments");
+			Console.OutLine("Description: Confirm a transaction and send a transaction with all the amounts from pending send operations");
+			Console.OutLine("Usage: >confirm <fee> <password>");
 		}
 		#endregion Transactions
 
 		#region Address
 
-		private static void CreateAddress(string arg)
+		//TODO: safe encrypted wallet
+		private static void WalletCreate(Queue<string> arg)
 		{
-			if (!string.IsNullOrEmpty(arg))
+			if (arg.Count == 1)
 			{
-				if (arg.Contains(' '))
-					Warrning(
-						"Currently you cannot use passwords that contains SPACE because of console parameter parsing. Consider use password without space into it");
-				var passwordHash = arg.Hash();
+				var passwordHash = arg.Dequeue().Hash();
 				System.Console.Write("Confirm password: ");
 				var passwordConfirm = System.Console.ReadLine();
 				if (passwordHash == passwordConfirm.Hash())
@@ -198,24 +243,23 @@ namespace BlockChanPro.Console
 					CommandFinished(_address.SerializeToJson(Formatting.Indented));
 					return;
 				}
-				else System.Console.WriteLine("Password confirmation do not match original password");
+				else Console.OutLine("Password confirmation do not match original password");
 			}
-			else System.Console.WriteLine("Invalid number of arguments");
-			System.Console.WriteLine("Description: Create a new address and change it to it current");
-			System.Console.WriteLine("Usage: >CreateAddress [password]");
+			else Console.OutLine("Invalid number of arguments");
+			Console.OutLine("Description: Create a new address to be used with the following operations");
+			Console.OutLine("Usage: > Wallet.Create <password>");
 		}
 
-		private static void ChangeAddress(string arg)
+		private static void WalletRecover(Queue<string> arg)
 		{
-			var arguments = arg.Split(' ');
-			if (arguments.Length == 1)
+			if (arg.Count == 1)
 			{
-				_address = new Address(arg.Hash());
+				_address = new Address(arg.Dequeue().Hash());
 				CommandFinished(_address.SerializeToJson(Formatting.Indented));
 			}
-			else System.Console.WriteLine("Invalid number of arguments");
-			System.Console.WriteLine("Description: Change the current currency address");
-			System.Console.WriteLine("Usage: >ChangeAddress [password]");
+			else Console.OutLine("Invalid number of arguments");
+			Console.OutLine("Description: Recover an existing address to be used with the following operations");
+			Console.OutLine("Usage: > Wallet.Recover <password>");
 		}
 
 		#endregion Address
@@ -223,8 +267,12 @@ namespace BlockChanPro.Console
 
 		private static void CommandFinished(string commandResult)
 		{
-			System.Console.WriteLine("Accepted -> Result:");
-			System.Console.WriteLine(commandResult);
+			if (!string.IsNullOrWhiteSpace(commandResult))
+			{
+				Console.OutLine("Accepted ->");
+				Console.OutLine(commandResult);
+			} else
+				Console.OutLine("Accepted");
 		}
 
 		private static void Warrning(string s)

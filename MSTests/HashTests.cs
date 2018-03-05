@@ -331,7 +331,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_SixTime_Validate_OffsetAndFraction()
         {
             var thb = new HashBits(6, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(6, 1);
+            var adjustedthb = thb.Adjust(6, 1, 1000, HashBits.MinTarget);
 
             Assert.AreEqual(3, adjustedthb.GetBitOffset());
             Assert.IsTrue(thb.GetFraction() > adjustedthb.GetFraction());
@@ -341,7 +341,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_QuadTime_Validate_OffsetAndFraction()
         {
             var thb = new HashBits(6, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(4, 1);
+            var adjustedthb = thb.Adjust(4, 1, 10000, HashBits.MinTarget);
 
             Assert.AreEqual(4, adjustedthb.GetBitOffset());
             Assert.AreEqual(thb.GetFraction(), adjustedthb.GetFraction());
@@ -351,7 +351,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_TripleTime_Validate_Offset()
         {
             var thb = new HashBits(6, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(3, 1);
+            var adjustedthb = thb.Adjust(3, 1, 10000, HashBits.MinTarget);
 
             Assert.AreEqual(4, adjustedthb.GetBitOffset());
             Assert.IsTrue(thb.GetFraction() > adjustedthb.GetFraction());
@@ -361,7 +361,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_DoublePlusTime_Validate_OffsetAndFraction()
         {
             var thb = new HashBits(2, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(2001, 1000);
+            var adjustedthb = thb.Adjust(2001, 1000, 10000, HashBits.MinTarget);
 
             Assert.AreEqual(0, adjustedthb.GetBitOffset());
             Assert.IsTrue(thb.GetFraction() > adjustedthb.GetFraction());
@@ -371,7 +371,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_DoubleTime_Validate_OffsetAndFraction()
         {
             var thb = new HashBits(2, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(2, 1);
+            var adjustedthb = thb.Adjust(2, 1, 10000, HashBits.MinTarget);
 
             Assert.AreEqual(1, adjustedthb.GetBitOffset());
             Assert.AreEqual(thb.GetFraction(), adjustedthb.GetFraction());
@@ -381,7 +381,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_DoubleMinusTime_HalfFraction_Validate_OffsetAndFraction()
         {
             var thb = new HashBits(2, 0x88888888888888);
-            var adjustedthb = thb.Adjust(1999, 1000);
+            var adjustedthb = thb.Adjust(1999, 1000, 10000, HashBits.MinTarget);
 
             Assert.AreEqual(1, adjustedthb.GetBitOffset());
             Assert.IsTrue(thb.GetFraction() > adjustedthb.GetFraction());
@@ -391,7 +391,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_DoubleMinusTime_FullFraction_Validate_OffsetAndFraction()
         {
             var thb = new HashBits(2, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(1999, 1000);
+            var adjustedthb = thb.Adjust(1999, 1000, 10000, HashBits.MinTarget);
 
             Assert.AreEqual(1, adjustedthb.GetBitOffset());
             Assert.IsTrue(thb.GetFraction() > adjustedthb.GetFraction());
@@ -401,7 +401,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_ThirthHalfTime_Validate_Offset()
         {
             var thb = new HashBits(5, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(3000, 2000);
+            var adjustedthb = thb.Adjust(3000, 2000, 10000, HashBits.MinTarget);
 
             Assert.AreEqual(4, adjustedthb.GetBitOffset());
             Assert.IsTrue(thb.GetFraction() > adjustedthb.GetFraction());
@@ -411,7 +411,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_SameTime_Validate_OffsetAndFraction()
         {
             var thb = new HashBits(6, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(1, 1);
+            var adjustedthb = thb.Adjust(1, 1, 10000, HashBits.MinTarget);
 
             Assert.AreEqual(6, adjustedthb.GetBitOffset());
             Assert.AreEqual(thb.GetFraction(), adjustedthb.GetFraction());
@@ -421,7 +421,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_TwoThirthTime_Validate_Offset()
         {
             var thb = new HashBits(6, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(2, 3);
+            var adjustedthb = thb.Adjust(2, 3, 10000, HashBits.MinTarget);
 
             Assert.AreEqual(6, adjustedthb.GetBitOffset());
             Assert.IsTrue(thb.GetFraction() > adjustedthb.GetFraction());
@@ -431,7 +431,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_HalfPlusTime_Validate_OffsetAndFraction()
         {
             var thb = new HashBits(6, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(201, 100);
+            var adjustedthb = thb.Adjust(201, 100, 10000, HashBits.MinTarget);
 
             Assert.AreEqual(4, adjustedthb.GetBitOffset());
             Assert.IsTrue(thb.GetFraction() > adjustedthb.GetFraction());
@@ -441,7 +441,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_HalfTime_Validate_OffsetAndFraction()
         {
             var thb = new HashBits(6, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(100, 200);
+            var adjustedthb = thb.Adjust(100, 200, 10000, HashBits.MinTarget);
             var hash = adjustedthb.ToHash().SerializeToJson();
             Console.WriteLine($"o({adjustedthb.GetBitOffset()}),\tf(0x{adjustedthb.GetFraction():X16}),\th({hash})");
 
@@ -453,7 +453,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_HalfMinusTime_Validate_OffsetAndFraction()
         {
             var thb = new HashBits(6, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(99, 200);
+            var adjustedthb = thb.Adjust(99, 200, 10000, HashBits.MinTarget);
             var hash = adjustedthb.ToHash().SerializeToJson();
             Console.WriteLine($"o({adjustedthb.GetBitOffset()}),\tf(0x{adjustedthb.GetFraction():X16}),\th({hash})");
 
@@ -465,7 +465,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_OneThirthTime_Validate_Offset()
         {
             var thb = new HashBits(6, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(1, 3);
+            var adjustedthb = thb.Adjust(1, 3, 10000, HashBits.MinTarget);
 
             Assert.AreEqual(7, adjustedthb.GetBitOffset());
             Assert.IsTrue(thb.GetFraction() > adjustedthb.GetFraction());
@@ -475,7 +475,7 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_OneForthTime_Validate_OffsetAndFraction()
         {
             var thb = new HashBits(6, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(1, 4);
+            var adjustedthb = thb.Adjust(1, 4, 10000, HashBits.MinTarget);
 
             Assert.AreEqual(8, adjustedthb.GetBitOffset());
             Assert.AreEqual(thb.GetFraction(), adjustedthb.GetFraction());
@@ -485,13 +485,64 @@ namespace BlockChanPro.MSTESTS
         public void TargetHashBits_Adjust_OneSixthTime_Validate_OffsetAndFraction()
         {
             var thb = new HashBits(6, 0xffffffffffffff);
-            var adjustedthb = thb.Adjust(1, 6);
+            var adjustedthb = thb.Adjust(1, 6, 10000, HashBits.MinTarget);
 
             Assert.AreEqual(8, adjustedthb.GetBitOffset());
             Assert.IsTrue(thb.GetFraction() > adjustedthb.GetFraction());
         }
 
-        [TestMethod]
+	    [TestMethod]
+	    public void TargetHashBits_Adjust_OneSixthTime_Validate_DoubleAdjustmentLimit()
+	    {
+		    var thb = new HashBits(6, 0xffffffffffffff);
+		    var adjustedthb = thb.Adjust(1, 6, 100, HashBits.MinTarget);
+
+		    Assert.AreEqual(7, adjustedthb.GetBitOffset());
+		    Assert.AreEqual(thb.GetFraction(), adjustedthb.GetFraction());
+	    }
+
+	    [TestMethod]
+	    public void TargetHashBits_Adjust_OneSixthTime_Validate_HalfAdjustmentLimit()
+	    {
+		    var thb = new HashBits(6, 0xffffffffffffff);
+		    var adjustedthb = thb.Adjust(1, 6, 50, HashBits.MinTarget);
+
+		    Assert.AreEqual(6, adjustedthb.GetBitOffset());
+		    Assert.AreEqual(0xaaaaaaaaaaaaaaUL, adjustedthb.GetFraction());
+	    }
+
+	    [TestMethod]
+	    public void TargetHashBits_Adjust_SixTime_Validate_DoubleAdjustmentLimit()
+	    {
+		    var thb = new HashBits(6, 0xffffffffffffff);
+		    var adjustedthb = thb.Adjust(600, 100, 100, HashBits.MinTarget);
+
+		    Assert.AreEqual(5, adjustedthb.GetBitOffset());
+		    Assert.AreEqual(thb.GetFraction(), adjustedthb.GetFraction());
+	    }
+
+	    [TestMethod]
+	    public void TargetHashBits_Adjust_SixTime_Validate_HalfAdjustmentLimit()
+	    {
+		    var thb = new HashBits(6, 0xffffffffffffff);
+		    var adjustedthb = thb.Adjust(600, 100, 50, HashBits.MinTarget);
+
+		    Assert.AreEqual(5, adjustedthb.GetBitOffset());
+		    Assert.AreEqual(0xbfffffffffffffUL, adjustedthb.GetFraction());
+	    }
+
+	    [TestMethod]
+	    public void TargetHashBits_Adjust_SixTime_Validate_MinimumTarget()
+	    {
+		    var thb = new HashBits(6, 0xffffffffffffff);
+		    var minTarget = new HashBits(0x0f, 0xffffffffffffff);
+			var adjustedthb = thb.Adjust(600, 100, 50, minTarget);
+
+		    Assert.AreEqual(minTarget.GetBitOffset(), adjustedthb.GetBitOffset());
+		    Assert.AreEqual(minTarget.GetFraction(), adjustedthb.GetFraction());
+	    }
+
+		[TestMethod]
         public void TargetHashBits_Adjust__Smoke_ConsoleOutput()
         {
             var target = 10;
@@ -500,7 +551,7 @@ namespace BlockChanPro.MSTESTS
 
             for (int i = 1; i <= 40; i++)
             {
-                var adjustedthb = thb.Adjust(i, target);
+                var adjustedthb = thb.Adjust(i, target, 10000);
                 var hash = adjustedthb.ToHash().SerializeToJson();
                 Console.WriteLine($"{i}/{target}:\to({adjustedthb.GetBitOffset()}),\tf(0x{adjustedthb.GetFraction():X16}),\th({hash})");
             }

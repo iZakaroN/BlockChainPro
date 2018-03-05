@@ -2,11 +2,12 @@
 using System.Linq;
 using Newtonsoft.Json;
 
-/// <summary>
-/// Source: https://stackoverflow.com/questions/11829035/newton-soft-json-jsonserializersettings-for-object-with-property-as-byte-array
-/// </summary>
+
 namespace BlockChanPro.Core.Serialization
 {
+	/// <summary>
+	/// Source: https://stackoverflow.com/questions/11829035/newton-soft-json-jsonserializersettings-for-object-with-property-as-byte-array
+	/// </summary>
     public class BytesToHexConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
@@ -21,20 +22,20 @@ namespace BlockChanPro.Core.Serialization
                 var hex = serializer.Deserialize<string>(reader);
                 if (!string.IsNullOrEmpty(hex))
                 {
-                    return Enumerable.Range(0, hex.Length)
-                         .Where(x => x % 2 == 0)
-                         .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
-                         .ToArray();
+	                return hex.ParseHex();
                 }
             }
             return Enumerable.Empty<byte>();
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+	    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var bytes = value as byte[];
-            var @string = BitConverter.ToString(bytes).Replace("-", string.Empty).ToLower();
-            serializer.Serialize(writer, @string);
+	        if (value is byte[] bytes)
+	        {
+		        var @string = bytes.ToHexString();
+		        serializer.Serialize(writer, @string);
+	        } else
+				throw new ArgumentException(nameof(value));
         }
     }
 
@@ -42,7 +43,7 @@ namespace BlockChanPro.Core.Serialization
     {
         public override bool CanConvert(Type objectType)
         {
-            return typeof(uint).Equals(objectType);
+            return typeof(uint) == objectType;
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)

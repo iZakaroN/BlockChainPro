@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using BlockChanPro.Core.Contracts;
 using Newtonsoft.Json;
 
 namespace BlockChanPro.Core.Serialization
 {
+	//TODO: Separate by purpose
 	public static class Extensions
 	{
 		//TODO: Implement fast and cross platform binary serialization, for now use integrated serialization
@@ -90,6 +92,16 @@ namespace BlockChanPro.Core.Serialization
 			return dataSegments.ToOneDimention();
 		}
 
+		public static byte[] ToBinary(this TransactionSigned value)
+		{
+			var dataSegments = new[]
+			{
+				value.Data.ToBinary(),
+				value.Sign.ToBinary(),
+			};
+			return dataSegments.ToOneDimention();
+		}
+
 		public static byte[] ToBinary(this Recipient value)
 		{
 			var dataSegments = new[]
@@ -140,5 +152,19 @@ namespace BlockChanPro.Core.Serialization
 			var serializedValue = JsonConvert.SerializeObject(value);
 			return serializedValue.ToBinary();
 		}
+
+		public static string ToHexString(this byte[] bytes)
+		{
+			return BitConverter.ToString(bytes).Replace("-", string.Empty).ToLower();
+		}
+
+		public static byte[] ParseHex(this string hex)
+		{
+			return Enumerable.Range(0, hex.Length)
+				.Where(x => x % 2 == 0)
+				.Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+				.ToArray();
+		}
+
 	}
 }

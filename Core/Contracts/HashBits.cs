@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using BlockChanPro.Core.Serialization;
 using Newtonsoft.Json;
 
@@ -6,7 +7,9 @@ namespace BlockChanPro.Core.Contracts
 {
     public class HashBits
     {
-        public static readonly HashBits GenesisTarget = new HashBits(0, 0xffffffffffffff);
+		private const int AdjustmentPercentLimit = 50;
+	    public static readonly HashBits MinTarget = new HashBits(0x00, 0xffffffffffffff);
+        public static readonly HashBits GenesisTarget = new HashBits(0x0f, 0xffffffffffffff);
         public const int OffsetByteSize = sizeof(byte);
         public const int OffsetBitSize = sizeof(byte) * 8;
         private const int OffsetShift = (sizeof(ulong) - OffsetByteSize) * 8;
@@ -72,62 +75,91 @@ namespace BlockChanPro.Core.Contracts
             return result;
         }
 
-        public HashBits Adjust(long currentTimeDelta, long targetTimeDelta)
+        public HashBits Adjust(long currentTimeDelta, long targetTimeDelta, int adjustmentPercentLimit = AdjustmentPercentLimit, HashBits minTarget = null)
         {
-            if (targetTimeDelta != currentTimeDelta)
+	        minTarget = minTarget ?? GenesisTarget;
+	        //Adjustment log
+			/*var coefficient = (decimal)targetTimeDelta / currentTimeDelta;
+	        Console.WriteLine($"@@@");
+	        Console.WriteLine($"@ Adjustment -> currentTimeDelta: {TimeSpan.FromTicks(currentTimeDelta)}, targetTimeDelta: {TimeSpan.FromTicks(targetTimeDelta)}, Expected coefficient: {coefficient}");*/
+
+			if (targetTimeDelta != currentTimeDelta)
             {
-                int offset = 0;
-                ulong fraction;
+                int offsetAdjust = 0;
+                ulong fractionAdjust;
                 if (targetTimeDelta < currentTimeDelta)
                 {
-                    while (targetTimeDelta < currentTimeDelta)
+	                var limit = targetTimeDelta + targetTimeDelta * adjustmentPercentLimit / 100; // X(1+A)
+					if (currentTimeDelta > limit)
+						currentTimeDelta = limit;
+
+					while (targetTimeDelta < currentTimeDelta)
                     {
                         targetTimeDelta <<= 1;
-                        offset -= 1;
+                        offsetAdjust -= 1;
                     }
 
-                    // TODO: optimize using intermediate bit shifts instead of floating calulations
+                    // TODO: optimize using intermediate bit shifts instead of floating calculations
                     //Because fraction offset was moved above the target (by power of 2), 
                     //reduce fraction itself with (1/2 < fractionMultiplyer < 1) to match the exact target
                     var fractionMultiplyer = (decimal)currentTimeDelta / targetTimeDelta;
                     //Because last byte of the fraction is reserved for offset, there will be a space for one bit shift
                     //so fraction can be normalized even if high bit goes away from fraction reduction
-                    fraction = (ulong)((GetFraction() << 1) * fractionMultiplyer);
-                    offset++;
+                    fractionAdjust = (ulong)((GetFraction() << 1) * fractionMultiplyer);
+                    offsetAdjust++;
                 }
                 else
                 {
-                    while (currentTimeDelta < targetTimeDelta)
+	                var limit = targetTimeDelta * 100 / (100 + adjustmentPercentLimit);// X/(1+A)
+					if (currentTimeDelta < limit)
+		                currentTimeDelta = limit;
+
+
+					while (currentTimeDelta < targetTimeDelta)
                     {
                         currentTimeDelta <<= 1;
-                        offset += 1;
+                        offsetAdjust += 1;
                     }
 
-					// TODO: optimize using intermediate bit shifts instead of floating calulations
+					// TODO: optimize using intermediate bit shifts instead of floating calculations
 					//Because fraction offset was moved below the target (by power of 2), 
 					//increase fraction itself with (1 < fractionMultiplyer < 2) to match the exact target
 					var fractionMultiplyer = (decimal)currentTimeDelta / targetTimeDelta;
 					//Because last byte of the fraction is reserved for offset, there will be a space for one bit if necessary
-					fraction = (ulong)(GetFraction() * fractionMultiplyer);
+					fractionAdjust = (ulong)(GetFraction() * fractionMultiplyer);
 
                 }
                 // In case fraction was increased Adjust(Normalize) fraction/offset to match their masks
-                if ((fraction & OffsetMask) != 0)
+                if ((fractionAdjust & OffsetMask) != 0)
                 {
-                    fraction >>= 1;
-                    offset--;
+                    fractionAdjust >>= 1;
+                    offsetAdjust--;
                 }
-                offset = GetBitOffset() + offset;
-                if (offset<0)
-                    return GenesisTarget;
-                else if (offset > OffsetMax)
-                    return new HashBits(OffsetMax, fraction >> (offset - OffsetMax));
-                return new HashBits((byte)offset, fraction);
+
+	            var newOffset = GetBitOffset() + offsetAdjust;
+	            //Adjustment log
+	            /*var currentCoefficient = ((decimal) GetFraction() / fractionAdjust) * (decimal)Math.Pow(2, -(GetBitOffset()- newOffset));
+				Console.WriteLine($"@ Adjustment -> Current: {currentCoefficient} (o:{newOffset:x1}, f:{fractionAdjust:x16})");*/
+
+				if (newOffset < minTarget.GetBitOffset())
+                    return minTarget;
+                else if (newOffset > OffsetMax)
+                    return new HashBits(OffsetMax, fractionAdjust >> (newOffset - OffsetMax));
+                return new HashBits((byte)newOffset, fractionAdjust);
 
             }
             return this;
         }
 
+	    public override string ToString()
+	    {
+		    return $"{GetType().Name}({this.SerializeToJson()})";
+	    }
 
+	    public long Difficulty(HashBits genesisTarget)
+	    {
+		    return (long) ((decimal)Math.Pow(2, GetBitOffset() - genesisTarget.GetBitOffset()) *((decimal)genesisTarget.GetFraction() / GetFraction()));
+
+	    }
     }
 }

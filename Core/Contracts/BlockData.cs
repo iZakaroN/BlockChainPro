@@ -6,19 +6,19 @@ namespace BlockChanPro.Core.Contracts
 	public class BlockData
 	{
 		public static long BlockTime = TimeSpan.FromSeconds(5).Ticks;
-		public static BlockData Genesis =
+		public static BlockData Genesis =>
 			new BlockData(
 				0,
 				DateTime.UtcNow.Ticks,
 				"Fiat lux",
-				Transaction.Genesis,
+				TransactionSigned.Genesis,
 				Hash.Genesis);
 
 		public BlockData()
 		{
 			
 		}
-		public BlockData(int number, long timeStamp, string message, Transaction[] transactions, Hash previousHash)
+		public BlockData(int number, long timeStamp, string message, TransactionSigned[] transactions, Hash previousHash)
 	    {
 		    Index = number;
 		    TimeStamp = timeStamp;
@@ -28,10 +28,11 @@ namespace BlockChanPro.Core.Contracts
 	    }
 
 		public int Index { get; }
-	    public long TimeStamp { get; }
-        // TODO: move message to transaction
+	    public long TimeStamp { get; set; }
+
+		// TODO: move message to transaction
         public string Message { get; }
-		public Transaction[] Transactions { get; }
+		public TransactionSigned[] Transactions { get; }
 		public Hash PreviousHash { get; }
 
 	}

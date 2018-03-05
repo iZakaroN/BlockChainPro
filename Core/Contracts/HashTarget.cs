@@ -1,3 +1,5 @@
+using BlockChanPro.Core.Serialization;
+
 namespace BlockChanPro.Core.Contracts
 {
     public class HashTarget
@@ -9,5 +11,10 @@ namespace BlockChanPro.Core.Contracts
         }
         public Hash Nounce { get; }
         public Hash Hash { get; }
+
+	    public override string ToString()
+	    {
+		    return $"{GetType().Name}({this.SerializeToJson()})";
+	    }
     }
 }

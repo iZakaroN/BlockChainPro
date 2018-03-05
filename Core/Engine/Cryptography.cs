@@ -6,34 +6,39 @@ namespace BlockChanPro.Core.Engine
 {
     public class Cryptography
     {
+	    private readonly SHA256 _sha256 = SHA256.Create();
 
-	    public BlockSigned SignBlock(BlockData block, Address stamp, HashBits target)
+		public BlockSigned SignBlock(BlockData block, Address sign, HashBits target)
 	    {
 
-		    //TODO: Sign block with private key (encrypt merkel tree root hash), for now just place address without real signing
-		    return new BlockSigned(block, stamp, target);
+		    //TODO: Sign block with private key (encrypt merkle tree root hash), for now just place address without real signing
+		    return new BlockSigned(block, sign, target);
 
 	    }
 
-	    public Hash CalculateHash(byte[] data)
+	    public TransactionSigned Sign(Transaction transaction, Address sender)
 	    {
-		    using (var sha256 = SHA256.Create())
-		    {
-			    return new Hash(sha256.ComputeHash(data));
-		    }
+		    var dataToHash = transaction.SerializeToBinary();
+		    return new TransactionSigned(
+			    transaction, 
+			    CalculateHash(dataToHash));
 	    }
+
+		public Hash CalculateHash(byte[] data)
+	    {
+		    return new Hash(_sha256.ComputeHash(data));
+		    
+
+		}
 	    public Hash CalculateHash(byte[] data, Hash nounce)
 	    {
-		    using (var sha256 = SHA256.Create())
-		    {
-			    sha256.TransformBlock(data, 0, data.Length, data, 0);
-			    var nounceData = nounce.ToBinary();
-			    sha256.TransformFinalBlock(nounceData, 0, nounceData.Length);
+		    _sha256.TransformBlock(data, 0, data.Length, data, 0);
+		    var nounceData = nounce.ToBinary();
+		    _sha256.TransformFinalBlock(nounceData, 0, nounceData.Length);
 
-			    return new Hash(sha256.Hash);
-		    }
+		    return new Hash(_sha256.Hash);
 	    }
-    }
+	}
 
 	public static class CryptohraphyExtensions
 	{
