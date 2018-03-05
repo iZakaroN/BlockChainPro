@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using BlockChanPro.Core.Serialization;
+using BlockChanPro.Model.Serialization;
 using Newtonsoft.Json;
 
-namespace BlockChanPro.Core.Contracts
+namespace BlockChanPro.Model.Contracts
 {
     public struct Hash
 	{
@@ -53,29 +53,21 @@ namespace BlockChanPro.Core.Contracts
             Contract.Requires<OverflowException>(segmentIncrease == 0);
         }
 
-        /// <summary>
-        /// Compare a hash with a target hash
-        /// </summary>
-        /// <param name="target">Target hash ;)</param>
-        /// <returns>
-        /// < : -1
-        /// == : 0
-        /// > : 1
-        /// </returns>
-        public int Compare(Hash target)
+		/// <summary>
+		/// Compare a hash with a target hash
+		/// </summary>
+		/// <param name="target">Target hash ;)</param>
+		/// <returns>
+		/// -1 less
+		///  0 equal
+		///  1 more
+		/// </returns>
+		public int Compare(Hash target)
         {
             var i = 0;
             while (i < Value.Length - 1 && Value[i] == target.Value[i])
                 i++;
             return Value[i] == target.Value[i] ? 0 : Value[i] < target.Value[i] ? -1 : 1;
-        }
-
-        private bool CompareOperation(Hash target, Func<Hash,Hash, bool> operation)
-        {
-            var i = 0;
-            while (i < Value.Length - 1 && Value[i] == target.Value[i])
-                i++;
-            return Value[i] < target.Value[i];
         }
 
         [JsonConverter(typeof(BytesToHexConverter))]

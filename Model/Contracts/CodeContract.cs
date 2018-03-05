@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace BlockChanPro.Core.Contracts
+namespace BlockChanPro.Model.Contracts
 {
 	internal static class Contract
 	{

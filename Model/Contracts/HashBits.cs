@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
-using BlockChanPro.Core.Serialization;
+using BlockChanPro.Model.Serialization;
 using Newtonsoft.Json;
 
-namespace BlockChanPro.Core.Contracts
+namespace BlockChanPro.Model.Contracts
 {
     public class HashBits
     {

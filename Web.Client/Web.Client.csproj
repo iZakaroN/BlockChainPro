@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <AssemblyName>BlockChanPro.Core</AssemblyName>
-    <RootNamespace>BlockChanPro.Core</RootNamespace>
+    <AssemblyName>BlockChanPro.Web.Client</AssemblyName>
+    <RootNamespace>BlockChanPro..Web.Client</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Model\Model.csproj" />
-    <ProjectReference Include="..\Web.Client\Web.Client.csproj" />
   </ItemGroup>
 
 </Project>

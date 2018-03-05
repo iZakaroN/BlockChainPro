@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
-using BlockChanPro.Core.Contracts;
-using BlockChanPro.Core.Serialization;
+using BlockChanPro.Model.Contracts;
+using BlockChanPro.Model.Serialization;
 
 namespace BlockChanPro.Core.Engine
 {

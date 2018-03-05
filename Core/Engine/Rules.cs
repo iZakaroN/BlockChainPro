@@ -1,4 +1,5 @@
 ﻿using BlockChanPro.Core.Contracts;
+using BlockChanPro.Model.Contracts;
 
 namespace BlockChanPro.Core.Engine
 {
@@ -8,7 +9,7 @@ namespace BlockChanPro.Core.Engine
         {
             int rewardReduction = lastBlock.Signed.Data.Index / Transaction.BlockCountRewardReduction;
 
-            return Transaction.GenesisReward >> rewardReduction;
+            return Genesis.Reward >> rewardReduction;
         }
 
 	    public static HashBits CalculateTargetHash(BlockHashed lastBlock, BlockData blockToProcess)

@@ -1,35 +1,37 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using BlockChanPro.Core.Contracts;
-using BlockChanPro.Core.Serialization;
+using BlockChanPro.Core.Engine.Data;
+using BlockChanPro.Core.Engine.Network;
+using BlockChanPro.Model.Contracts;
+using BlockChanPro.Model.Serialization;
 
 namespace BlockChanPro.Core.Engine
 {
 	//TODO: Split on smaller pieces
 	public class Engine
-    {
+	{
 	    private readonly IFeedBack _feedback;
+		private readonly IP2PNetwork _network;
+		private readonly IChainData _chainData;
 
-	    //TODO: inject from factory
+		//TODO: inject from factory
 		private static readonly Cryptography Cryptography = new Cryptography();
 		private static readonly MinerFactory MinerFactory = new MinerFactory(Cryptography);
 
-		private List<BlockHashed> Chain { get; }
-		//TODO: Order transactions in transaction.Sender->transaction.Id
-		private ConcurrentDictionary<Hash, TransactionSigned> PendingTransactions { get; }
 	    private Miner _currentMiner;
 	    // ReSharper disable once NotAccessedField.Local //Just in case
 	    private Task _minerTask;
 
-		public Engine(IFeedBack feedback)
+		public Engine(
+			IFeedBack feedback, 
+			IP2PNetwork network, 
+			IChainData chainData)
 	    {
 		    _feedback = feedback;
-		    Chain = new List<BlockHashed>();
-			PendingTransactions = new ConcurrentDictionary<Hash, TransactionSigned>();
-		}
+		    _network = network;
+		    _chainData = chainData;
+	    }
 
 		/// <summary>
 		/// Start mining or continue with different arguments
@@ -54,9 +56,8 @@ namespace BlockChanPro.Core.Engine
 
 		    do
 		    {
-			    var currentBlocks = Chain.Count;
-			    var lastBlock = Chain[currentBlocks - 1];
-			    var miner = MinerFactory.Create(mineAddress, lastBlock, SelectTransactionsToMine(), _feedback);
+			    var lastBlock = _chainData.GetLastBlock();
+			    var miner = MinerFactory.Create(mineAddress, lastBlock, _chainData.SelectTransactionsToMine(), _feedback);
 			    var threadsClosure = numberOfThreads;
 
 				await _feedback.Execute("Mine",
@@ -80,9 +81,9 @@ namespace BlockChanPro.Core.Engine
 
 		public async Task MineGenesisAsync(int? numberOfThreads)
 	    {
-		    if (Chain.Count == 0)
+		    if (_chainData.GetLastBlock() == null)
 		    {
-			    var genesisMiner = MinerFactory.Create(Address.God, BlockData.Genesis, HashBits.GenesisTarget, _feedback);
+			    var genesisMiner = MinerFactory.Create(Genesis.God, Genesis.BlockData, HashBits.GenesisTarget, _feedback);
 			    await _feedback.Execute("MineGenesis",
 				    () => MineAsync(genesisMiner, numberOfThreads),
 				    () => $"{nameof(numberOfThreads)}: {numberOfThreads}");
@@ -119,9 +120,9 @@ namespace BlockChanPro.Core.Engine
 			    () =>
 			    {
 					long blockTime = 0;
-				    if (Chain.Count > 0)
+				    var lastBlock = _chainData.GetLastBlock();
+				    if (lastBlock != null)
 				    {
-					    var lastBlock = Chain[Chain.Count - 1];
 
 						if (newBlock.Signed.Data.PreviousHash != lastBlock.HashTarget.Hash)
 						    throw new Exception("New block is not valid for current chain state");
@@ -129,43 +130,18 @@ namespace BlockChanPro.Core.Engine
 
 				    }
 
-				    foreach (var blockTransactions in newBlock.Signed.Data.Transactions)
-					    PendingTransactions.TryRemove(blockTransactions.Sign, out var _);
+				    _chainData.RemovePendingTransactions(newBlock.Signed.Data.Transactions);
 				    _feedback.NewBlockFound(newBlock.Signed.Data.Index, blockTime, newBlock.HashTarget.Hash);
 
-					Chain.Add(newBlock);
+				    _chainData.AddNewBlock(newBlock);
 			    },
 			    () => $"{nameof(newBlock)}: {newBlock.SerializeToJson()}");
 		}
 
-	    private IEnumerable<TransactionSigned> SelectTransactionsToMine()
-	    {
-		    //Just choose add all transactions
-		    return PendingTransactions.Values;
-	    }
-
-	    public bool SendTransaction(TransactionSigned transaction)
-	    {
-			return PendingTransactions.TryAdd(transaction.Sign, transaction);
-	    }
-
-		public class TransactionsInfo
-	    {
-		    public TransactionsInfo(long confirmedTransactions, long pendingTransactions)
-		    {
-			    ConfirmedTransactions = confirmedTransactions;
-			    PendingTransactions = pendingTransactions;
-		    }
-		    public long ConfirmedTransactions { get; }
-		    public long PendingTransactions { get; }
-	    }
-
-		public TransactionsInfo CalulateTransactionsInfo()
+		public void SendTransaction(TransactionSigned result)
 		{
-			return new TransactionsInfo(
-				Chain.Aggregate(0, (seed, block) =>  seed + block.Signed.Data.Transactions.Length),
-				PendingTransactions.Count
-			);
-	    }
+			_chainData.AddPendingTransaction(result);
+			_network.Broadcast(new [] { result });
+		}
 	}
 }

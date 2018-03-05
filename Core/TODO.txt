@@ -23,6 +23,7 @@
 	- Single responsibility
 	- DI
 	- Implement feedback as decorator
+- Make it async
 - Console command engine ()
 - Mining 
 	- Separate Miner to serer and client for pool mining

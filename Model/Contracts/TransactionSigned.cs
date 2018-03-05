@@ -1,11 +1,7 @@
-namespace BlockChanPro.Core.Contracts
+namespace BlockChanPro.Model.Contracts
 {
 	public class TransactionSigned 
 	{
-		public static TransactionSigned[] Genesis =
-		{
-			new TransactionSigned(Transaction.Genesis, Hash.Genesis)
-		};
 		public Transaction Data { get; }
 		public Hash Sign { get; }
 

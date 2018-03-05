@@ -1,18 +1,11 @@
 ﻿using System;
 
-namespace BlockChanPro.Core.Contracts
+namespace BlockChanPro.Model.Contracts
 {
     //TODO: Rename to block header and move transactions into signed block
 	public class BlockData
 	{
 		public static long BlockTime = TimeSpan.FromSeconds(5).Ticks;
-		public static BlockData Genesis =>
-			new BlockData(
-				0,
-				DateTime.UtcNow.Ticks,
-				"Fiat lux",
-				TransactionSigned.Genesis,
-				Hash.Genesis);
 
 		public BlockData()
 		{

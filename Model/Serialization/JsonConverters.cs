@@ -2,9 +2,9 @@
 using System.Linq;
 using Newtonsoft.Json;
 
-
-namespace BlockChanPro.Core.Serialization
+namespace BlockChanPro.Model.Serialization
 {
+	/// <inheritdoc />
 	/// <summary>
 	/// Source: https://stackoverflow.com/questions/11829035/newton-soft-json-jsonserializersettings-for-object-with-property-as-byte-array
 	/// </summary>

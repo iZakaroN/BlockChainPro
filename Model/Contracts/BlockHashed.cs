@@ -1,4 +1,4 @@
-namespace BlockChanPro.Core.Contracts
+namespace BlockChanPro.Model.Contracts
 {
     public class BlockHashed
 	{

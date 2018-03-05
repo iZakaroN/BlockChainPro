@@ -1,6 +1,6 @@
 using System;
-using BlockChanPro.Core.Contracts;
-using BlockChanPro.Core.Serialization;
+using BlockChanPro.Model.Contracts;
+using BlockChanPro.Model.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace BlockChanPro.MSTESTS

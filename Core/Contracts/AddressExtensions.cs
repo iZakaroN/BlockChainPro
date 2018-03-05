@@ -1,21 +1,10 @@
 using BlockChanPro.Core.Engine;
+using BlockChanPro.Model.Contracts;
 
 namespace BlockChanPro.Core.Contracts
 {
-	public struct Address
+	public struct AddressExtensions
 	{
-		public static Address God  = new Address("God".Hash());
-		public static Address Adam = new Address("Adam".Hash());
-		public static Address Eva  = new Address("Eva".Hash());
-		//For easy use just use int for now
-
-		public Address(Hash value)
-		{
-			Value = value;
-		}
-
-		public Hash Value { get; }
-
 		public static bool TryParse(string s, out Address address)
 		{
 			//TODO: validate real address

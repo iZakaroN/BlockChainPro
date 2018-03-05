@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using BlockChanPro.Core.Contracts;
-using BlockChanPro.Core.Serialization;
+using BlockChanPro.Model.Contracts;
+using BlockChanPro.Model.Serialization;
 
 namespace BlockChanPro.Core.Engine
 {
@@ -65,9 +66,9 @@ namespace BlockChanPro.Core.Engine
 			{
 				_cryptography.Sign(
 					new Transaction(
-					Address.God,
-					new[] { new Recipient(inFavor, Rules.CalulateBlockReward(lastBlock)) }, 
-					0),
+						Genesis.God,
+						new[] {new Recipient(inFavor, Rules.CalulateBlockReward(lastBlock))},
+						0),
 					inFavor),
 			};
 			return mineReward;

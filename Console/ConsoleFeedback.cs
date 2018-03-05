@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
-using BlockChanPro.Core.Contracts;
 using BlockChanPro.Core.Engine;
-using BlockChanPro.Core.Serialization;
+using BlockChanPro.Model.Contracts;
+using BlockChanPro.Model.Serialization;
 
 namespace BlockChanPro.Console
 {
@@ -94,7 +94,7 @@ namespace BlockChanPro.Console
 
 		public void Error(string operation, string message)
 	    {
-		    OutLine($"Error: {operation}, {message}");
+		    OutLine($"# {operation} => Error: {message}");
 	    }
     }
 }

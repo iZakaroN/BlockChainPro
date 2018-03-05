@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using BlockChanPro.Core.Contracts;
+using BlockChanPro.Model.Contracts;
 
 namespace BlockChanPro.Core.Engine
 {

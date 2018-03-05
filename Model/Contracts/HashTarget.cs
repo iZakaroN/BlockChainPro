@@ -1,6 +1,6 @@
-using BlockChanPro.Core.Serialization;
+using BlockChanPro.Model.Serialization;
 
-namespace BlockChanPro.Core.Contracts
+namespace BlockChanPro.Model.Contracts
 {
     public class HashTarget
     {

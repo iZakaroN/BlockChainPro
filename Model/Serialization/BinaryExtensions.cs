@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Linq;
 using System.Text;
-using BlockChanPro.Core.Contracts;
-using Newtonsoft.Json;
+using BlockChanPro.Model.Contracts;
 
-namespace BlockChanPro.Core.Serialization
+namespace BlockChanPro.Model.Serialization
 {
-	//TODO: Separate by purpose
-	public static class Extensions
-	{
+    public static class BinaryExtensions
+    {
 		//TODO: Implement fast and cross platform binary serialization, for now use integrated serialization
 		public static byte[] ToOneDimention(this byte[][] source)
 		{
@@ -25,7 +22,7 @@ namespace BlockChanPro.Core.Serialization
 		{
 			int[] intArray = decimal.GetBits(dec);
 			var dataSegments = new byte[intArray.Length][];
-			for(var i = 0; i< intArray.Length;i++)
+			for (var i = 0; i < intArray.Length; i++)
 				dataSegments[i] = intArray[i].ToBinary();
 
 			return dataSegments.ToOneDimention();
@@ -36,20 +33,20 @@ namespace BlockChanPro.Core.Serialization
 			return BitConverter.GetBytes(value);
 		}
 
-	    public static byte[] ToBinary(this ulong value)
-	    {
-	        return BitConverter.GetBytes(value);
-	    }
+		public static byte[] ToBinary(this ulong value)
+		{
+			return BitConverter.GetBytes(value);
+		}
 
 		public static byte[] ToBinary(this int value)
 		{
 			return BitConverter.GetBytes(value);
 		}
 
-	    public static byte[] ToBinary(this uint value)
-	    {
-	        return BitConverter.GetBytes(value);
-	    }
+		public static byte[] ToBinary(this uint value)
+		{
+			return BitConverter.GetBytes(value);
+		}
 
 		public static byte[] ToBinary(this string value)
 		{
@@ -121,49 +118,6 @@ namespace BlockChanPro.Core.Serialization
 		{
 			return value.Value;
 			//return value.Value.GetRawData(BitConverter.GetBytes);
-		}
-
-		public static string SerializeToJson<T>(this T value, Formatting formatting = Formatting.None)
-		{
-			return JsonConvert.SerializeObject(value, formatting);
-		}
-
-		public static T DeserializeFromJson<T>(this string value)
-		{
-			return JsonConvert.DeserializeObject<T>(value);
-		}
-
-		public static bool TryDeserializeFromJson<T>(this string input, out T output)
-		{
-			try
-			{
-				output = input.DeserializeFromJson<T>();
-				return true;
-			}
-			catch (JsonSerializationException)
-			{
-				output = default(T);
-				return false;
-			}
-		}
-
-		public static byte[] SerializeToBinary<T>(this T value)
-		{
-			var serializedValue = JsonConvert.SerializeObject(value);
-			return serializedValue.ToBinary();
-		}
-
-		public static string ToHexString(this byte[] bytes)
-		{
-			return BitConverter.ToString(bytes).Replace("-", string.Empty).ToLower();
-		}
-
-		public static byte[] ParseHex(this string hex)
-		{
-			return Enumerable.Range(0, hex.Length)
-				.Where(x => x % 2 == 0)
-				.Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
-				.ToArray();
 		}
 
 	}

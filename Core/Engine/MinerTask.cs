@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using BlockChanPro.Core.Contracts;
+using BlockChanPro.Model.Contracts;
 
 namespace BlockChanPro.Core.Engine
 {
@@ -22,7 +22,6 @@ namespace BlockChanPro.Core.Engine
 		public void Start(Func<CancellationToken, HashTarget> execute)
 		{
 			Task?.Dispose();
-			var a = TaskScheduler.Default.MaximumConcurrencyLevel;
 			Task = System.Threading.Tasks.Task.Factory.StartNew(() =>
 				execute(Cancellation.Token),
 				Cancellation.Token);

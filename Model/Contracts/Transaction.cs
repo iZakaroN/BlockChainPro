@@ -1,23 +1,11 @@
 using System;
 
-namespace BlockChanPro.Core.Contracts
+namespace BlockChanPro.Model.Contracts
 {
 	//TODO: Introduce txin instead of sender and fee
 	public class Transaction
 	{
-		public static long GenesisReward = 0x100;
 		public static int BlockCountRewardReduction = 0x100;
-
-		public static Transaction Genesis =
-			new Transaction(
-				Address.God,
-				new[]
-				{
-					new Recipient(Address.Adam, GenesisReward),
-					new Recipient(Address.Eva, GenesisReward)
-				},
-				0,
-				0);
 
 		public Transaction()
 		{

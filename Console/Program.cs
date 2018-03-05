@@ -1,9 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using BlockChanPro.Core.Contracts;
 using BlockChanPro.Core.Engine;
-using BlockChanPro.Core.Serialization;
+using BlockChanPro.Core.Engine.Data;
+using BlockChanPro.Core.Engine.Network;
+using BlockChanPro.Model.Contracts;
+using BlockChanPro.Model.Serialization;
+using BlockChanPro.Web.Api;
+using BlockChanPro.Web.Client;
+using Microsoft.AspNetCore.Hosting;
 using Newtonsoft.Json;
 
 namespace BlockChanPro.Console
@@ -15,7 +23,8 @@ namespace BlockChanPro.Console
 			{
 				{"-a", ParseAddress},
 				{"-ap", ParseAddressPassword},
-				{"-h", Help}
+				{"-?", Help},
+				{"-h", SetHost}
 			};
 
 		private static readonly Dictionary<string, Action<Queue<string>>> CommandParsers = new Dictionary<string, Action<Queue<string>>>(StringComparer.OrdinalIgnoreCase)
@@ -34,12 +43,17 @@ namespace BlockChanPro.Console
 		private static readonly Cryptography Cryptography = new Cryptography();
 
 		private static bool _exitConsole;
+		private static string _host;
 		private static Address? _address;
-		private static readonly Engine Engine = new Engine(new Console());
+		private static readonly IP2PNetwork Network = new P2PNetwork();
+		private static readonly IChainData ChainData = new ChainData();
+		private static readonly Console Console = new Console();
+		private static readonly Engine Engine = new Engine(Console, Network, ChainData);
+		private static Task _webHostTask;
+		private static readonly CancellationTokenSource WebHostCancel = new CancellationTokenSource();
 
 		static void Main(string[] args)
 		{
-
 			var parsedParameters = new HashSet<string>();
 
 			Queue<string> paramQueue = new Queue<string>(args);
@@ -53,16 +67,26 @@ namespace BlockChanPro.Console
 					Exit($"Invalid parameter {paramName}");
 				parsedParameters.Add(paramName);
 			}
+			Startup.Initialize(Network);
+			_webHostTask = Host.BuildWebHost(_host).RunAsync(WebHostCancel.Token);
 
 			//Just for faster testing
-			_address = new Address("test".Hash());
+			if (_address == null)
+				_address = new Address("test".Hash());
 			Console.OutMarker();
 			while (!_exitConsole)
 			{
 				var userInput = new Queue<string>(SplitCommandLine(System.Console.ReadLine()));
 				if (userInput.TryDequeue(out var command) && CommandParsers.TryGetValue(command, out var commandAction))
 				{
-					commandAction(userInput);
+					try
+					{
+						commandAction(userInput);
+					}
+					catch (Exception e)
+					{
+						Console.Error(command, e.Message);
+					}
 				}
 				else
 				{
@@ -70,6 +94,7 @@ namespace BlockChanPro.Console
 					Help(userInput);
 				}
 			}
+			WebHostCancel.Cancel();
 		}
 
 		public static IEnumerable<string> SplitCommandLine(string commandLine)
@@ -113,6 +138,20 @@ namespace BlockChanPro.Console
 			var commandsHelp = CommandParsers.Keys.Aggregate("", (s, c) => s + (s == "" ? "" : ", ") + c);
 			Console.OutLine(commandsHelp);
 		}
+
+		private static void SetHost(Queue<string> obj)
+		{
+			if (obj.TryDequeue(out var host))
+			{
+				if (!host.TryParseUrl(out var uri))
+					throw new ArgumentException("Invalid host url");
+				_host = uri.AbsoluteUri;
+			}
+			else
+				Exit("No listening address specified");
+		}
+
+
 
 		private static void Exit(Queue<string> arg)
 		{
@@ -168,7 +207,7 @@ namespace BlockChanPro.Console
 
 		private static void Info(Queue<string> arg)
 		{
-			var result = Engine.CalulateTransactionsInfo();
+			var result = ChainData.CalulateTransactionsInfo();
 			CommandFinished(result.SerializeToJson(Formatting.Indented));
 		}
 
@@ -179,7 +218,7 @@ namespace BlockChanPro.Console
 		{
 			if (arg?.Count == 2)
 			{
-				if (Address.TryParse(arg.Dequeue(), out var targetAddress))
+				if (AddressExtensions.TryParse(arg.Dequeue(), out var targetAddress))
 				{
 					if (long.TryParse(arg.Dequeue(), out var amount))
 					{
@@ -274,11 +313,5 @@ namespace BlockChanPro.Console
 			} else
 				Console.OutLine("Accepted");
 		}
-
-		private static void Warrning(string s)
-		{
-			System.Console.WriteLine(s);
-		}
-
 	}
 }
