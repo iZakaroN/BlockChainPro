@@ -15,22 +15,6 @@ namespace BlockChanPro.Model.Contracts
 	    public static long SegmentValueLimit = SegmentMask + 1;
 
 
-        public static Hash Genesis => new Hash(new byte[]
-		{
-			0,0,0,0,0,0,0,0,
-			0,0,0,0,0,0,0,0,
-			0,0,0,0,0,0,0,0,
-			0,0,0,0,0,0,0,0,
-		});
-
-		/*public static Hash GenesisTargetHash = new Hash(new byte[]
-        {
-            0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
-            0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
-            0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
-            0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
-        });*/
-
         public Hash(byte[] hashSegments)
 		{
 			Contract.Requires(hashSegments.Length == SegmentsLength, $"{nameof(hashSegments)}");
