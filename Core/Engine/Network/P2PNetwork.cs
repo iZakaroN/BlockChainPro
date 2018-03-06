@@ -52,11 +52,12 @@ namespace BlockChanPro.Core.Engine.Network
 		    throw new NotImplementedException();
 	    }
 
-	    public void Broadcast(TransactionSigned[] transactions, string peerUri = null)
+	    public void Broadcast(TransactionSigned[] transactions, string sender = null)
 	    {
 		    foreach (var peer in _peers)
 		    {
-			    if (string.Compare(peer.Key, peerUri, StringComparison.InvariantCultureIgnoreCase) != 0)
+				//Send transaction only to other peers
+			    if (string.Compare(peer.Key, sender, StringComparison.InvariantCultureIgnoreCase) != 0)
 			    {
 				    peer.Value.Client.BroadcastAsync(transactions);
 			    }

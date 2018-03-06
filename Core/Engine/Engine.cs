@@ -9,7 +9,7 @@ using BlockChanPro.Model.Serialization;
 namespace BlockChanPro.Core.Engine
 {
 	//TODO: Split on smaller pieces
-	public class Engine
+	public class Engine : IEngine
 	{
 	    private readonly IFeedBack _feedback;
 		private readonly IP2PNetwork _network;
@@ -138,10 +138,19 @@ namespace BlockChanPro.Core.Engine
 			    () => $"{nameof(newBlock)}: {newBlock.SerializeToJson()}");
 		}
 
-		public void SendTransaction(TransactionSigned result)
+		public void SendTransaction(TransactionSigned result, string sender = null)
 		{
 			_chainData.AddPendingTransaction(result);
-			_network.Broadcast(new [] { result });
+			_network.Broadcast(new [] { result }, sender);
 		}
+
+		public void AcceptTransactions(TransactionSigned[] transactions, string sender)
+		{
+			foreach (var transaction in transactions)
+			{
+				SendTransaction(transaction, sender);
+			}
+		}
+
 	}
 }
