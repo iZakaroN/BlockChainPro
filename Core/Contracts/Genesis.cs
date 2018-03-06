@@ -26,7 +26,7 @@ namespace BlockChanPro.Core.Contracts
 
 		public static TransactionSigned[] TransactionSigned =
 		{
-			new TransactionSigned(Transaction, Hash.Genesis)
+			new TransactionSigned(Transaction, Hash)
 		};
 
 		public static BlockData BlockData =>
@@ -35,7 +35,28 @@ namespace BlockChanPro.Core.Contracts
 				DateTime.UtcNow.Ticks,
 				"Fiat lux",
 				TransactionSigned,
-				Hash.Genesis);
+				Hash);
+
+		public static readonly HashBits Target = new HashBits(0x0f, 0xffffffffffffff);
+
+		public static Hash Hash => new Hash(new byte[]
+		{
+			0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,
+			0,0,0,0,0,0,0,0,
+		});
+
+		public const int AdjustmentPercentLimit = 20;
+
+		/*public static Hash GenesisTargetHash = new Hash(new byte[]
+        {
+            0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
+            0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
+            0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
+            0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
+        });*/
+
 
 	}
 }

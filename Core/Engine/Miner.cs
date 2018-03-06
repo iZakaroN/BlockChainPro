@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using BlockChanPro.Model.Contracts;
 using BlockChanPro.Model.Serialization;
+using BlockChanPro.Core.Contracts;
 
 namespace BlockChanPro.Core.Engine
 {
@@ -68,7 +69,7 @@ namespace BlockChanPro.Core.Engine
 		}
 
 		public bool Canceled { get; private set; }
-		public long Difficulty => _signedBlock.HashTargetBits.Difficulty(HashBits.GenesisTarget);
+		public long Difficulty => _signedBlock.HashTargetBits.Difficulty(Genesis.Target);
 		public HashBits TargetBits => _signedBlock.HashTargetBits;
 		public int Threads { get; internal set; }
 

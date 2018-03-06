@@ -83,7 +83,7 @@ namespace BlockChanPro.Core.Engine
 	    {
 		    if (_chainData.GetLastBlock() == null)
 		    {
-			    var genesisMiner = MinerFactory.Create(Genesis.God, Genesis.BlockData, HashBits.GenesisTarget, _feedback);
+			    var genesisMiner = MinerFactory.Create(Genesis.God, Genesis.BlockData, Genesis.Target, _feedback);
 			    await _feedback.Execute("MineGenesis",
 				    () => MineAsync(genesisMiner, numberOfThreads),
 				    () => $"{nameof(numberOfThreads)}: {numberOfThreads}");
