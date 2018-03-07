@@ -23,17 +23,28 @@ namespace BlockChanPro.Console
 
 	    public static void Out(string s)
 	    {
-		    System.Console.Write($"\r{s}");
+		    var x = System.Console.CursorLeft;
+		    var y = System.Console.CursorTop;
+		    System.Console.SetCursorPosition(0, System.Console.CursorTop - 1);
+			System.Console.WriteLine($"\r{s}");
+		    if (y == System.Console.CursorTop)
+			    System.Console.SetCursorPosition(x, y);
 	    }
 
-	    public static void OutLine(string s)
+		public static void OutLine(string s)
 	    {
+		    var x = System.Console.CursorLeft;
+		    var y = System.Console.CursorTop;
+		    System.Console.SetCursorPosition(0, System.Console.CursorTop - 1);
 		    System.Console.WriteLine($"\r{s}");
 		    OutMarker();
+			if (y == System.Console.CursorTop)
+				System.Console.SetCursorPosition(x, y);
 	    }
 
-	    public static void OutMarker()
+		public static void OutMarker()
 	    {
+		    System.Console.WriteLine("   ");
 		    System.Console.Write("\r> ");
 	    }
 
@@ -46,17 +57,22 @@ namespace BlockChanPro.Console
 		    }
 	    }
 
-	    public void NewBlockFound(int blockHeight, long blockTime, Hash blockHash)
+	    public void NewBlockAccepted(int blockHeight, long blockTime, Hash blockHash)
 	    {
-		    OutLine($"# New block found, H:{blockHeight}, DT:{TimeSpan.FromTicks(blockTime)}, BH:{blockHash.Value.ToHexString()}");
+		    OutLine($"# New block accepted, H:{blockHeight}, DT:{TimeSpan.FromTicks(blockTime)}, BH:{blockHash.Value.ToHexString()}");
 	    }
 
 		public void NewBlockMined(int blockHeight, long mineTime)
 	    {
-		    OutLine($"# New block mined, H:{blockHeight}, DT:{TimeSpan.FromTicks(mineTime)}, ");
+		    OutLine($"# New block mined, H:{blockHeight}, DT:{TimeSpan.FromTicks(mineTime)}");
 	    }
 
-	    public void HashProgress(ulong hashesCalculated)
+	    public void NewTransaction(TransactionSigned transaction)
+	    {
+		    OutLine($"# New transaction accepted, TH:{transaction.Sign.Value.ToHexString()}");
+	    }
+
+		public void HashProgress(ulong hashesCalculated)
 	    {
 		    ulong? hashRate = null;
 		    lock (_lock)

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using BlockChanPro.Core.Contracts;
 using BlockChanPro.Model.Contracts;
-using BlockChanPro.Model.Serialization;
 
 namespace BlockChanPro.Core.Engine
 {
@@ -24,20 +23,16 @@ namespace BlockChanPro.Core.Engine
 			var blockToProcess = GetNewBlock(inFavor, lastBlock, transactionsToProcess);
 
 			var targetHashBits = Rules.CalculateTargetHash(lastBlock, blockToProcess);
-			return Create(inFavor, blockToProcess, targetHashBits, feedback);
+			var signedBlock = _cryptography.SignBlock(blockToProcess, inFavor, targetHashBits);
+			return Create(signedBlock, feedback);
 		}
 
 		public  Miner Create(
-			Address sign, 
-			BlockData blockToProcess, 
-			HashBits targetHashBits,
+			BlockSigned signedBlock,
 			IFeedBack feedback)
 		{
-			var signedBlock = _cryptography.SignBlock(blockToProcess, sign, targetHashBits);
-
-			var dataToHash = signedBlock.SerializeToBinary();
-			var signedBlockHash = _cryptography.CalculateHash(dataToHash);
-			return new Miner(targetHashBits, signedBlock, signedBlockHash, _cryptography, feedback);
+			var signedBlockHash = _cryptography.CalculateHash(signedBlock);
+			return new Miner(signedBlock.HashTargetBits, signedBlock, signedBlockHash, _cryptography, feedback);
 		}
 
 		private BlockData GetNewBlock(Address inFavor, BlockHashed lastBlock, IEnumerable<TransactionSigned> transactionsToProcess)

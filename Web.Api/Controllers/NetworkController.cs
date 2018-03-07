@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using BlockChanPro.Core.Engine;
 using BlockChanPro.Core.Engine.Network;
 using BlockChanPro.Model.Contracts;
 using BlockChanPro.Model.Interfaces;
@@ -10,35 +11,41 @@ namespace BlockChanPro.Web.Api.Controllers
     public class NetworkController : Controller, INetworkApi
 	{
 	    private readonly IP2PNetwork _netwrok;
+		private readonly IEngine _engine;
 
-	    public NetworkController(IP2PNetwork netwrok)
-	    {
-		    _netwrok = netwrok;
-	    }
-
-	    [HttpGet(UriApi.Connections)]
-        public Task<string[]> RetrieveConnectionsAsync()
+		public NetworkController(IP2PNetwork netwrok, IEngine engine)
 		{
-	        return Task.FromResult(_netwrok.GetConnections());
-        }
+			_netwrok = netwrok;
+			_engine = engine;
+		}
 
-        [HttpPost(UriApi.Connections)]
+		[HttpGet(ApiConstants.Connections)]
+		public Task<string> GetVersionAsync()
+		{
+			return Task.FromResult(ApiConstants.Version);
+		}
+
+	    [HttpGet(ApiConstants.Connections)]
+		public Task<string[]> GetConnectionsAsync()
+		{
+			return _netwrok.GetConnectionsAsync();
+		}
+
+		[HttpPost(ApiConstants.Connections)]
         public Task<string[]> ConnectAsync([FromBody]string address)
         {
-	        return Task.FromResult(_netwrok.Connect(address));
+	        return _netwrok.ConnectAsync(address);
         }
 
-        [HttpDelete(UriApi.Connections)]
-        public Task DisconnectAsync(string uri)
-        {
-	        throw new System.NotImplementedException();
-	        //return Task.CompletedTask;
-        }
-
-		[HttpPost(UriApi.Transactions)]
-		public Task BroadcastAsync(TransactionSigned[] transactions)
+		[HttpPost(ApiConstants.Transactions)]
+		public Task BroadcastAsync([FromBody]TransactionsBundle transactions)
 		{
-			throw new System.NotImplementedException();
+			return _engine.AcceptTransactionsAsync(transactions);
+		}
+
+		public Task BroadcastAsync([FromBody]BlockBundle block)
+		{
+			return _engine.AcceptBlockAsync(block);
 		}
 	}
 }

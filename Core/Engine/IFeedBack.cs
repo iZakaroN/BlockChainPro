@@ -9,8 +9,11 @@ namespace BlockChanPro.Core.Engine
 	{
 		void MineNewBlock(long difficulty, HashBits targetBits);
 		void StartProcess(int threadsCount);
-		void NewBlockFound(int blockHeight, long blockTime, Hash blockHash);
+
+		void NewBlockAccepted(int blockHeight, long blockTime, Hash blockHash);
 		void NewBlockMined(int blockHeight, long mineTime);
+		void NewTransaction(TransactionSigned transaction);
+
 		void HashProgress(ulong hashesCalculated);
 		void MinedBlockCanceled();
 		void Start(string operation, string message);

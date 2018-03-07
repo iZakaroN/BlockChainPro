@@ -1,4 +1,3 @@
-using System;
 using BlockChanPro.Core.Engine;
 using BlockChanPro.Model.Contracts;
 
@@ -29,13 +28,17 @@ namespace BlockChanPro.Core.Contracts
 			new TransactionSigned(Transaction, Hash)
 		};
 
-		public static BlockData BlockData =>
-			new BlockData(
+		public static BlockSigned GetBlockData(Cryptography cryptography, long timeStamp)
+		{
+			var blockData = new BlockData(
 				0,
-				DateTime.UtcNow.Ticks,
+				timeStamp,
 				"Fiat lux",
 				TransactionSigned,
 				Hash);
+			var signedBlock = cryptography.SignBlock(blockData, God, Target);
+			return signedBlock;
+		}
 
 		public static readonly HashBits Target = new HashBits(0x0f, 0xffffffffffffff);
 

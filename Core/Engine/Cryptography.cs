@@ -27,8 +27,6 @@ namespace BlockChanPro.Core.Engine
 		public Hash CalculateHash(byte[] data)
 	    {
 		    return new Hash(_sha256.ComputeHash(data));
-		    
-
 		}
 	    public Hash CalculateHash(byte[] data, Hash nounce)
 	    {
@@ -37,6 +35,12 @@ namespace BlockChanPro.Core.Engine
 		    _sha256.TransformFinalBlock(nounceData, 0, nounceData.Length);
 
 		    return new Hash(_sha256.Hash);
+	    }
+
+	    public Hash CalculateHash(BlockSigned signedBlock)
+	    {
+		    var dataToHash = signedBlock.SerializeToBinary();
+		    return CalculateHash(dataToHash);
 	    }
 	}
 

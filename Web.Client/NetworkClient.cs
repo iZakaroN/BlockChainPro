@@ -15,28 +15,41 @@ namespace Web.Shared
 		    _httpClient = httpClient;
 	    }
 
-	    public async Task<string[]> RetrieveConnectionsAsync()
+	    public async Task<string> GetVersionAsync()
 	    {
-		    var response = await _httpClient.GetAsync(UriApi.Connections);
+		    var response = await _httpClient.GetAsync(ApiConstants.Root);
+		    return await response.Content.ReadAsStringAsync();
+	    }
+
+		public async Task<string[]> GetConnectionsAsync()
+	    {
+		    var response = await _httpClient.GetAsync(ApiConstants.Connections);
 		    return await response.Content.ReadAsJsonAsync<string[]>();
 	    }
 
-		public async Task<string[]> ConnectAsync(string uri)
+		public async Task<string[]> ConnectAsync(string senderUri)
 	    {
-		    var response = await _httpClient.PostAsJsonAsync(UriApi.Connections, uri);
+		    var response = await _httpClient.PostAsJsonAsync(ApiConstants.Connections, senderUri);
 			return await response.Content.ReadAsJsonAsync<string[]>();
 	    }
 
-		public async Task DisconnectAsync(string uri)
+	    public Task BroadcastAsync(TransactionsBundle transactions)
 	    {
-		    await _httpClient.DeleteAsync(UriApi.Connections);
+		    return _httpClient.PostAsJsonAsync(ApiConstants.Transactions, transactions);
 	    }
 
-	    public async Task BroadcastAsync(TransactionSigned[] transactions)
+	    public Task BroadcastAsync(BlockBundle block)
 	    {
-		    await _httpClient.PostAsJsonAsync(UriApi.Connections, transactions);
+		    return _httpClient.PostAsJsonAsync(ApiConstants.Blocks, block);
 	    }
 
-	    public Uri Host => _httpClient.BaseAddress;
-    }
+		public Uri Host => _httpClient.BaseAddress;
+
+	    public async Task CheckAccessAsync()
+	    {
+		    var version = await GetVersionAsync();
+			if (version != ApiConstants.Version)
+			    throw new ApiException($"Peer has invalid api version {version}. Expected {ApiConstants.Version}");
+	    }
+	}
 }

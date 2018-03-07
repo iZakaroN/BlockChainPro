@@ -1,34 +1,16 @@
-﻿using BlockChanPro.Model.Contracts;
+﻿using System.Threading.Tasks;
+using BlockChanPro.Model.Contracts;
 
 namespace BlockChanPro.Core.Engine.Network
 {
 	public interface IP2PNetwork
 	{
-		/// <summary>
-		/// Connect to the node using <see cref="webAddress"/>
-		/// </summary>
-		/// <param name="webAddress">Web address that can be used to connect to the node</param>
-		/// <returns></returns>
-		string[] Connect(string webAddress);
+		Task<string[]> ConnectAsync(string webAddress);
 
-		/// <summary>
-		/// Retrieve available connections
-		/// </summary>
-		/// <returns></returns>
-		string[] GetConnections();
+		Task<string[]> GetConnectionsAsync();
 
-		/// <summary>
-		/// Broadcast a new mined block
-		/// </summary>
-		/// <param name="block"></param>
-		/// <param name="peerUri"></param>
-		void Broadcast(BlockHashed block, string peerUri = null);
+		Task BroadcastAsync(TransactionSigned[] transactions);
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="transactions"></param>
-		/// <param name="peerUri">peer that broadcast</param>
-		void Broadcast(TransactionSigned[] transactions, string peerUri = null);
+		Task Broadcast(BlockHashed block);
 	}
 }

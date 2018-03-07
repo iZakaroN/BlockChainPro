@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BlockChanPro.Core;
 using BlockChanPro.Core.Contracts;
 using BlockChanPro.Core.Engine;
-using BlockChanPro.Core.Engine.Data;
-using BlockChanPro.Core.Engine.Network;
 using BlockChanPro.Model.Contracts;
 using BlockChanPro.Model.Serialization;
 using BlockChanPro.Web.Api;
@@ -40,15 +39,13 @@ namespace BlockChanPro.Console
 
 		};
 
-		private static readonly Cryptography Cryptography = new Cryptography();
-
 		private static bool _exitConsole;
 		private static string _host;
 		private static Address? _address;
-		private static readonly IP2PNetwork Network = new P2PNetwork();
-		private static readonly IChainData ChainData = new ChainData();
+
 		private static readonly Console Console = new Console();
-		private static readonly Engine Engine = new Engine(Console, Network, ChainData);
+		private static DependencyContainer _dependencies;
+		// ReSharper disable once NotAccessedField.Local
 		private static Task _webHostTask;
 		private static readonly CancellationTokenSource WebHostCancel = new CancellationTokenSource();
 
@@ -67,7 +64,8 @@ namespace BlockChanPro.Console
 					Exit($"Invalid parameter {paramName}");
 				parsedParameters.Add(paramName);
 			}
-			Startup.Initialize(Network);
+			_dependencies = new DependencyContainer(_host, Console);
+			Startup.Initialize(_dependencies.Network, _dependencies.Engine);
 			_webHostTask = Host.BuildWebHost(_host).RunAsync(WebHostCancel.Token);
 
 			//Just for faster testing
@@ -180,7 +178,7 @@ namespace BlockChanPro.Console
 					}
 					else
 						threads = t;
-				Engine.Mine(_address.Value, threads);
+				_dependencies.Engine.Mine(_address.Value, threads);
 				CommandFinished($"Mining started in favor to address {_address.Value.Value.SerializeToJson()}");
 				//CommandFinished($"Block mined: {block.SerializeToJson(Formatting.Indented)}");
 				return;
@@ -191,7 +189,7 @@ namespace BlockChanPro.Console
 
 		private static void MineStop(Queue<string> arg)
 		{
-			Engine.MineStop();
+			_dependencies.Engine.MineStop();
 		}
 
 		private static void NoAddress()
@@ -207,7 +205,7 @@ namespace BlockChanPro.Console
 
 		private static void Info(Queue<string> arg)
 		{
-			var result = ChainData.CalulateTransactionsInfo();
+			var result = _dependencies.ChainData.CalulateTransactionsInfo();
 			CommandFinished(result.SerializeToJson(Formatting.Indented));
 		}
 
@@ -246,11 +244,11 @@ namespace BlockChanPro.Console
 					{
 						if (hashedPassword == _address.Value.Value)
 						{
-							var result = Cryptography.Sign(
+							var result = _dependencies.Cryptography.Sign(
 								new Transaction(_address.Value, PendingRecipients.ToArray(), fee),
 								_address.Value);
 
-							Engine.SendTransaction(result);
+							_dependencies.Engine.SendTransaction(result);
 							CommandFinished(result.SerializeToJson(Formatting.Indented));
 							return;
 						}

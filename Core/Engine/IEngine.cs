@@ -1,12 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Threading.Tasks;
 using BlockChanPro.Model.Contracts;
 
 namespace BlockChanPro.Core.Engine
 {
     public interface IEngine
     {
-	    void AcceptTransactions(TransactionSigned[] transactions, string sender);
+	    Task AcceptTransactionsAsync(TransactionsBundle transactions);
+
+		/// <summary>
+		/// Return last block available
+		/// </summary>
+		/// <param name="block"></param>
+		/// <returns></returns>
+	    Task AcceptBlockAsync(BlockBundle block);
     }
 }

@@ -14,7 +14,7 @@ namespace Web.Shared
 	{
 		public INetworkClient Create(string url)
 		{
-			if (!Uri.IsWellFormedUriString(url, UriKind.Absolute) || !url.TryParseUrl(out var uri))
+			if (!url.TryParseUrl(out var uri))
 				throw new ArgumentException("Not valid web address");
 
 			var httpClient = new HttpClient {BaseAddress = uri};

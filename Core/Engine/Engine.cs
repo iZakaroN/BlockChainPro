@@ -8,7 +8,7 @@ using BlockChanPro.Model.Serialization;
 
 namespace BlockChanPro.Core.Engine
 {
-	//TODO: Split on smaller pieces
+	//TODO: Separate miner in different interface and probably class (at least as preparation for pooled mining)
 	public class Engine : IEngine
 	{
 	    private readonly IFeedBack _feedback;
@@ -83,7 +83,7 @@ namespace BlockChanPro.Core.Engine
 	    {
 		    if (_chainData.GetLastBlock() == null)
 		    {
-			    var genesisMiner = MinerFactory.Create(Genesis.God, Genesis.BlockData, Genesis.Target, _feedback);
+			    var genesisMiner = MinerFactory.Create(Genesis.GetBlockData(Cryptography, DateTime.UtcNow.Ticks), _feedback);
 			    await _feedback.Execute("MineGenesis",
 				    () => MineAsync(genesisMiner, numberOfThreads),
 				    () => $"{nameof(numberOfThreads)}: {numberOfThreads}");
@@ -119,38 +119,27 @@ namespace BlockChanPro.Core.Engine
 		    _feedback.Execute("AddNewBlock",
 			    () =>
 			    {
-					long blockTime = 0;
-				    var lastBlock = _chainData.GetLastBlock();
-				    if (lastBlock != null)
-				    {
-
-						if (newBlock.Signed.Data.PreviousHash != lastBlock.HashTarget.Hash)
-						    throw new Exception("New block is not valid for current chain state");
-					    blockTime = newBlock.Signed.Data.TimeStamp - lastBlock.Signed.Data.TimeStamp;
-
-				    }
-
-				    _chainData.RemovePendingTransactions(newBlock.Signed.Data.Transactions);
-				    _feedback.NewBlockFound(newBlock.Signed.Data.Index, blockTime, newBlock.HashTarget.Hash);
-
 				    _chainData.AddNewBlock(newBlock);
-			    },
+				},
 			    () => $"{nameof(newBlock)}: {newBlock.SerializeToJson()}");
 		}
 
-		public void SendTransaction(TransactionSigned result, string sender = null)
+		public void SendTransaction(TransactionSigned result)
 		{
-			_chainData.AddPendingTransaction(result);
-			_network.Broadcast(new [] { result }, sender);
+			if (_chainData.AddPendingTransaction(result))
+				_network.BroadcastAsync(new [] { result });
 		}
 
-		public void AcceptTransactions(TransactionSigned[] transactions, string sender)
+		public Task AcceptTransactionsAsync(TransactionsBundle transactions)
 		{
-			foreach (var transaction in transactions)
-			{
-				SendTransaction(transaction, sender);
-			}
+			foreach (var transaction in transactions.Transactions)
+				_chainData.AddPendingTransaction(transaction);
+			return Task.CompletedTask;
 		}
 
+		public Task AcceptBlockAsync(BlockBundle block)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
