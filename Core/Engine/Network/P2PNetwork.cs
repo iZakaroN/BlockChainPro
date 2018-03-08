@@ -12,7 +12,7 @@ namespace BlockChanPro.Core.Engine.Network
     {
 	    private readonly string _peerUrl;
 	    private readonly INetworkClientFactory _networkClientFactory;
-	    private ConcurrentDictionary<string, PeerConnection> _peers = new ConcurrentDictionary<string, PeerConnection>();
+	    private readonly ConcurrentDictionary<string, PeerConnection> _peers = new ConcurrentDictionary<string, PeerConnection>();
 
 	    public P2PNetwork(string peerUrl)
 	    {
@@ -34,7 +34,7 @@ namespace BlockChanPro.Core.Engine.Network
 		    var connectedPeers = new List<string>();
 		    foreach (var peerUrl in peerConnections)
 		    {
-			    if (await TryRegisterConnectionAsync(peerUrl));
+			    if (await TryRegisterConnectionAsync(peerUrl))
 					connectedPeers.Add(peerUrl);
 			}
 

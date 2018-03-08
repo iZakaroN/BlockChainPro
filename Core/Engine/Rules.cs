@@ -7,7 +7,7 @@ namespace BlockChanPro.Core.Engine
     {
         public static long CalulateBlockReward(BlockHashed lastBlock)
         {
-            int rewardReduction = lastBlock.Signed.Data.Index / Transaction.BlockCountRewardReduction;
+            var rewardReduction = lastBlock.Signed.Data.Index / Transaction.BlockCountRewardReduction;
 
             return Genesis.Reward >> rewardReduction;
         }

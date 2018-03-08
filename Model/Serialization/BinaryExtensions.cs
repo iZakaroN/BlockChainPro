@@ -10,6 +10,8 @@ namespace BlockChanPro.Model.Serialization
 		public static byte[] ToOneDimention(this byte[][] source)
 		{
 			var resultCount = 0;
+			// ReSharper disable once LoopCanBeConvertedToQuery
+			// ReSharper disable once ForCanBeConvertedToForeach
 			for (var i = 0; i < source.Length; i++)
 				resultCount += source[i].Length;
 			var result = new byte[resultCount];

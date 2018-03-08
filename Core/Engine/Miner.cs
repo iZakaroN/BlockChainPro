@@ -84,7 +84,7 @@ namespace BlockChanPro.Core.Engine
 			_feedback.Execute("RemoveTasks",
 				() =>
 				{
-					List<MinerTask> tasksToRemove = new List<MinerTask>();
+					var tasksToRemove = new List<MinerTask>();
 					for (var i = 0; i < taskCount; i++)
 					{
 						tasksToRemove.Add(_tasks.Dequeue());

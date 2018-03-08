@@ -1,5 +1,4 @@
 ﻿using BlockChanPro.Model.Interfaces;
-using Web.Shared;
 
 namespace BlockChanPro.Core.Engine.Network
 {

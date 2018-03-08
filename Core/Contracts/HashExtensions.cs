@@ -1,7 +1,5 @@
 ﻿using BlockChanPro.Model.Contracts;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using BlockChanPro.Model.Serialization;
 using System.Linq;
 

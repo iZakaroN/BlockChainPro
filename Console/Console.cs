@@ -52,11 +52,11 @@ namespace BlockChanPro.Console
 		private static Task _webHostTask;
 		private static readonly CancellationTokenSource WebHostCancel = new CancellationTokenSource();
 
-		static void Main(string[] args)
+		private static void Main(string[] args)
 		{
 			var parsedParameters = new HashSet<string>();
 
-			Queue<string> paramQueue = new Queue<string>(args);
+			var paramQueue = new Queue<string>(args);
 			while (paramQueue.TryDequeue(out var paramName))
 			{
 				if (parsedParameters.Contains(paramName))
@@ -298,8 +298,8 @@ namespace BlockChanPro.Console
 							_dependencies.Engine.SendTransaction(result);
 							CommandFinished(result.SerializeToJson(Formatting.Indented));
 							return;
-						}
-						else Console.OutLine("Password do not match");
+						} else
+							Console.OutLine("Password do not match");
 					} else
 						NoAddress();
 				}
@@ -326,8 +326,8 @@ namespace BlockChanPro.Console
 					_address = new Address(passwordHash);
 					CommandFinished(_address.SerializeToJson(Formatting.Indented));
 					return;
-				}
-				else Console.OutLine("Password confirmation do not match original password");
+				} else
+					Console.OutLine("Password confirmation do not match original password");
 			}
 			else Console.OutLine("Invalid number of arguments");
 			Console.OutLine("Description: Create a new address to be used with the following operations");

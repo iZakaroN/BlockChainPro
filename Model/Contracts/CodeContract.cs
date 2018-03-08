@@ -93,6 +93,7 @@ namespace BlockChanPro.Model.Contracts
 		}
 	}
 
+	// ReSharper disable once RedundantAttributeUsageProperty
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Delegate, AllowMultiple = false, Inherited = false)]
 	public class ContractClass : Attribute
 	{

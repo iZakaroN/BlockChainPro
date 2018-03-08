@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace BlockChanPro.Model.Contracts
+﻿namespace BlockChanPro.Model.Contracts
 {
     public class TransactionsBundle
     {
