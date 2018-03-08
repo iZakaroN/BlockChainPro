@@ -139,7 +139,13 @@ namespace BlockChanPro.Core.Engine
 
 		public Task AcceptBlockAsync(BlockBundle block)
 		{
-			throw new NotImplementedException();
+			_chainData.AddNewBlock(block.Block);
+			return Task.CompletedTask;
+		}
+
+		public Task<string[]> ConnectToPeerAsync(string url)
+		{
+			return _network.ConnectToPeerAsync(url);
 		}
 	}
 }

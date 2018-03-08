@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 
 namespace BlockChanPro.Console
 {
-	class Program
+	internal class ConsoleProgram
 	{
 		private static readonly Dictionary<string, Action<Queue<string>>> ParameterParsers =
 			new Dictionary<string, Action<Queue<string>>>
@@ -23,7 +23,8 @@ namespace BlockChanPro.Console
 				{"-a", ParseAddress},
 				{"-ap", ParseAddressPassword},
 				{"-?", Help},
-				{"-h", SetHost}
+				{"-h", SetHost},
+				{"-p", SetTrustedPeer}
 			};
 
 		private static readonly Dictionary<string, Action<Queue<string>>> CommandParsers = new Dictionary<string, Action<Queue<string>>>(StringComparer.OrdinalIgnoreCase)
@@ -32,6 +33,7 @@ namespace BlockChanPro.Console
 			{"Wallet.Recover", WalletRecover },
 			{"Mine.Start", MineStart },
 			{"Mine.Stop", MineStop },
+			{"Connect", ConnectToPeer },
 			{"Send", Send },
 			{"Confirm", Confirm },
 			{"Info", Info },
@@ -41,6 +43,7 @@ namespace BlockChanPro.Console
 
 		private static bool _exitConsole;
 		private static string _host;
+		private static string _trustedPeer;
 		private static Address? _address;
 
 		private static readonly Console Console = new Console();
@@ -65,6 +68,9 @@ namespace BlockChanPro.Console
 				parsedParameters.Add(paramName);
 			}
 			_dependencies = new DependencyContainer(_host, Console);
+			if (_trustedPeer!=null)
+				ConnectToPeer(_trustedPeer);
+
 			Startup.Initialize(_dependencies.Network, _dependencies.Engine);
 			_webHostTask = Host.BuildWebHost(_host).RunAsync(WebHostCancel.Token);
 
@@ -137,6 +143,7 @@ namespace BlockChanPro.Console
 			Console.OutLine(commandsHelp);
 		}
 
+		#region Network
 		private static void SetHost(Queue<string> obj)
 		{
 			if (obj.TryDequeue(out var host))
@@ -148,6 +155,46 @@ namespace BlockChanPro.Console
 			else
 				Exit("No listening address specified");
 		}
+		private static void SetTrustedPeer(Queue<string> obj)
+		{
+			if (obj.TryDequeue(out var host))
+			{
+				if (!host.TryParseUrl(out var uri))
+					throw new ArgumentException("Invalid peer url");
+				_trustedPeer = uri.AbsoluteUri;
+			}
+			else
+				Console.OutLine("No peer address specified");
+		}
+
+		private static void ConnectToPeer(Queue<string> obj)
+		{
+			if (obj.TryDequeue(out var peer))
+			{
+				ConnectToPeer(peer);
+			}
+			else
+				Console.OutLine("No peer address specified");
+		}
+
+		private static void ConnectToPeer(string url)
+		{
+			try
+			{
+				if (!url.TryParseUrl(out var uri))
+					throw new ArgumentException("Invalid peer url");
+				var peerUrl = uri.AbsolutePath;
+				Console.OutLine($"Connecting to peer '{peerUrl}..'");
+				var connectedPeers = _dependencies.Engine.ConnectToPeerAsync(peerUrl).GetAwaiter().GetResult();
+				string newPeers = connectedPeers.Aggregate("", (s, v) => (s != "" ? ", " : "") + $"'{v}'");
+				Console.OutLine($"New peers discovered and connected {newPeers}");
+			}
+			catch (Exception e)
+			{
+				Console.Error("connect", e.Message);
+			}
+		}
+		#endregion Network
 
 
 

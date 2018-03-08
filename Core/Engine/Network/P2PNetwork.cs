@@ -1,4 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BlockChanPro.Model.Contracts;
@@ -18,14 +20,28 @@ namespace BlockChanPro.Core.Engine.Network
 		    _networkClientFactory = new NetworkClientFactory();
 	    }
 
-		public async Task<string[]> ConnectAsync(string webAddress)
+		public async Task<string[]> ConnectPeerAsync(string webAddress)
 	    {
 		    var result = await GetConnectionsAsync();
 		    await RegisterConnectionAsync(webAddress);
 		    return result;
 	    }
 
-		public Task<string[]> GetConnectionsAsync()
+	    public async Task<string[]> ConnectToPeerAsync(string webAddress)
+	    {
+		    var connection = await RegisterConnectionAsync(webAddress);
+		    var peerConnections = await connection.Client.GetConnectionsAsync();
+		    var connectedPeers = new List<string>();
+		    foreach (var peerUrl in peerConnections)
+		    {
+			    if (await TryRegisterConnectionAsync(peerUrl));
+					connectedPeers.Add(peerUrl);
+			}
+
+		    return connectedPeers.ToArray();
+	    }
+
+	    public Task<string[]> GetConnectionsAsync()
 	    {
 		    return Task.FromResult(_peers.Keys.ToArray());
 	    }
@@ -66,7 +82,21 @@ namespace BlockChanPro.Core.Engine.Network
 		    }
 	    }
 
-	    private async Task RegisterConnectionAsync(string url)
+	    private async Task<bool> TryRegisterConnectionAsync(string peerUrl)
+	    {
+		    try
+		    {
+			    await RegisterConnectionAsync(peerUrl);
+			    return true;
+
+		    }
+		    catch (Exception)
+		    {
+			    return false;
+		    }
+	    }
+
+	    private async Task<PeerConnection> RegisterConnectionAsync(string url)
 	    {
 		    var client = _networkClientFactory.Create(url);
 		    await client.CheckAccessAsync();
@@ -75,11 +105,9 @@ namespace BlockChanPro.Core.Engine.Network
 		    if (_peers.TryAdd(address, peerConnection))
 		    {
 			    peerConnection.Accessible = true;
-
-
 		    }
+
+		    return peerConnection;
 	    }
-
-
 	}
 }

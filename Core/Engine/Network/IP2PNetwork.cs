@@ -5,7 +5,9 @@ namespace BlockChanPro.Core.Engine.Network
 {
 	public interface IP2PNetwork
 	{
-		Task<string[]> ConnectAsync(string webAddress);
+		Task<string[]> ConnectPeerAsync(string webAddress);
+
+		Task<string[]> ConnectToPeerAsync(string webAddress);
 
 		Task<string[]> GetConnectionsAsync();
 

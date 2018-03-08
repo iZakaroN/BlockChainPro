@@ -9,6 +9,10 @@
 	- Signing
 	- Validate accepted blocks
 - P2P sync
+	- Limit number of connections
+	- Optimize connections (by best response while ensure that the entire network is connected - always have at least one distant node)
+	- broadcast sync - ensure all pears have the same blocks 
+
 - Abstract hash size and algo (use it for different performance/security scenarios)
 	- hash size = baseHashSize*2^x (base 128 = 0 , current 256 hash = 1, future proof hash 512 = 2, 1024 = 3)
 	- Algo

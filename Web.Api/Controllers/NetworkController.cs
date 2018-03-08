@@ -34,7 +34,7 @@ namespace BlockChanPro.Web.Api.Controllers
 		[HttpPost(ApiConstants.Connections)]
         public Task<string[]> ConnectAsync([FromBody]string address)
         {
-	        return _netwrok.ConnectAsync(address);
+	        return _netwrok.ConnectPeerAsync(address);
         }
 
 		[HttpPost(ApiConstants.Transactions)]
