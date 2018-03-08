@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using BlockChanPro.Model.Serialization;
 using BlockChanPro.Web.Api;
 using BlockChanPro.Web.Client;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
 namespace BlockChanPro.Console
@@ -45,12 +47,14 @@ namespace BlockChanPro.Console
 		private static string _host;
 		private static string _trustedPeer;
 		private static Address? _address;
+		private static bool _logWebHost = true;
 
 		private static readonly Console Console = new Console();
 		private static DependencyContainer _dependencies;
 		// ReSharper disable once NotAccessedField.Local
 		private static Task _webHostTask;
 		private static readonly CancellationTokenSource WebHostCancel = new CancellationTokenSource();
+		private static CancellationToken _webHostStarted;
 
 		private static void Main(string[] args)
 		{
@@ -68,11 +72,35 @@ namespace BlockChanPro.Console
 				parsedParameters.Add(paramName);
 			}
 			_dependencies = new DependencyContainer(_host, Console);
-			if (_trustedPeer!=null)
-				ConnectToPeer(_trustedPeer);
+			Startup.Initialize(_dependencies.Network, _dependencies.Engine, (s,l) => false, c => _webHostStarted = c);
 
-			Startup.Initialize(_dependencies.Network, _dependencies.Engine);
-			_webHostTask = Host.BuildWebHost(_host).RunAsync(WebHostCancel.Token);
+			var webHost = new WebHostBuilder()
+				.UseKestrel()
+				.UseUrls(_host)
+				.UseContentRoot(Directory.GetCurrentDirectory())
+				.ConfigureAppConfiguration((hostingContext, config) =>
+				{
+					/*var env = hostingContext.HostingEnvironment;
+					config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+						.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);*/
+					config.AddEnvironmentVariables();
+				})
+				.ConfigureLogging((hostingContext, logging) =>
+				{
+					//logging.AddConsole(o => { });
+				})
+				.UseStartup<Startup>()
+				.Build();
+
+			_webHostTask = webHost.RunAsync(WebHostCancel.Token);
+			//webHost.Start();
+			//_webHostTask = Host.BuildWebHost(_host).RunAsync(WebHostCancel.Token);
+			_webHostStarted.WaitHandle.WaitOne();
+
+			Console.OutMarker();
+			_logWebHost = false;
+			if (_trustedPeer != null)
+				ConnectToPeer(_trustedPeer);
 
 			//Just for faster testing
 			if (_address == null)
@@ -183,11 +211,12 @@ namespace BlockChanPro.Console
 			{
 				if (!url.TryParseUrl(out var uri))
 					throw new ArgumentException("Invalid peer url");
-				var peerUrl = uri.AbsolutePath;
-				Console.OutLine($"Connecting to peer '{peerUrl}..'");
+				var peerUrl = uri.AbsoluteUri;
+				Console.OutLine($"Connecting to peer '{peerUrl}' ...");
 				var connectedPeers = _dependencies.Engine.ConnectToPeerAsync(peerUrl).GetAwaiter().GetResult();
-				string newPeers = connectedPeers.Aggregate("", (s, v) => (s != "" ? ", " : "") + $"'{v}'");
-				Console.OutLine($"New peers discovered and connected {newPeers}");
+				string newPeers = connectedPeers.Aggregate("", (s, v) => (s != "" ? $"{s}, '{v}'" : $"'{v}'"));
+				newPeers = newPeers == "" ? "None" : newPeers;
+				Console.OutLine($"New peers discovered and connected [{newPeers}]");
 			}
 			catch (Exception e)
 			{

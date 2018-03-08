@@ -30,7 +30,7 @@ namespace BlockChanPro.Core.Engine.Network
 	    public async Task<string[]> ConnectToPeerAsync(string webAddress)
 	    {
 		    var connection = await RegisterConnectionAsync(webAddress);
-		    var peerConnections = await connection.Client.GetConnectionsAsync();
+		    var peerConnections = await connection.Client.ConnectAsync(_peerUrl);
 		    var connectedPeers = new List<string>();
 		    foreach (var peerUrl in peerConnections)
 		    {

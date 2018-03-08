@@ -35,7 +35,8 @@ namespace BlockChanPro.Console
 	    {
 		    var x = System.Console.CursorLeft;
 		    var y = System.Console.CursorTop;
-		    System.Console.SetCursorPosition(0, System.Console.CursorTop - 1);
+			if (System.Console.CursorTop>0)
+				System.Console.SetCursorPosition(0, System.Console.CursorTop - 1);
 		    System.Console.WriteLine($"\r{s}");
 		    OutMarker();
 			if (y == System.Console.CursorTop)

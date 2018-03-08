@@ -18,18 +18,21 @@ namespace Web.Shared
 	    public async Task<string> GetVersionAsync()
 	    {
 		    var response = await _httpClient.GetAsync(ApiConstants.Root);
-		    return await response.Content.ReadAsStringAsync();
+		    response.EnsureSuccessStatusCode();
+		    return await response.Content.ReadAsJsonAsync<string>();
 	    }
 
 		public async Task<string[]> GetConnectionsAsync()
 	    {
 		    var response = await _httpClient.GetAsync(ApiConstants.Connections);
+		    response.EnsureSuccessStatusCode();
 		    return await response.Content.ReadAsJsonAsync<string[]>();
 	    }
 
 		public async Task<string[]> ConnectAsync(string senderUri)
 	    {
 		    var response = await _httpClient.PostAsJsonAsync(ApiConstants.Connections, senderUri);
+		    response.EnsureSuccessStatusCode();
 			return await response.Content.ReadAsJsonAsync<string[]>();
 	    }
 
@@ -49,7 +52,7 @@ namespace Web.Shared
 	    {
 		    var version = await GetVersionAsync();
 			if (version != ApiConstants.Version)
-			    throw new ApiException($"Peer has invalid api version {version}. Expected {ApiConstants.Version}");
+			    throw new ApiException($"Peer has invalid api version 'v{version}'. Expected '{ApiConstants.Version}'");
 	    }
 	}
 }

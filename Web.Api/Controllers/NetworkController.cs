@@ -19,7 +19,7 @@ namespace BlockChanPro.Web.Api.Controllers
 			_engine = engine;
 		}
 
-		[HttpGet(ApiConstants.Connections)]
+		[HttpGet(ApiConstants.Root)]
 		public Task<string> GetVersionAsync()
 		{
 			return Task.FromResult(ApiConstants.Version);
