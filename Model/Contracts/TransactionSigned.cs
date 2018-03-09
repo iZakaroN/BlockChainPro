@@ -5,10 +5,10 @@ namespace BlockChanPro.Model.Contracts
 		public Transaction Data { get; }
 		public Hash Sign { get; }
 
-		public TransactionSigned(Transaction data, Hash hash)
+		public TransactionSigned(Transaction data, Hash sign)
 		{
 			Data = data;
-			Sign = hash;
+			Sign = sign;
 		}
 	}
 }

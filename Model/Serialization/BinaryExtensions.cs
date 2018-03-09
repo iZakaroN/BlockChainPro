@@ -74,7 +74,7 @@ namespace BlockChanPro.Model.Serialization
 				value.TimeStamp.ToBinary(),
 				value.Message.ToBinary(),
 				value.Transactions.ToBinary(ToBinary),
-				value.PreviousHash.ToBinary()
+				value.ParentHash.ToBinary()
 			};
 			return dataSegments.ToOneDimention();
 		}

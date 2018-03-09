@@ -72,7 +72,7 @@ namespace BlockChanPro.Core.Engine
 		    } while (true);
 	    }
 
-		private async Task<Miner> MineAsync(Address mineAddress, int? numberOfThreads, BlockHashed lastBlock, IEnumerable<TransactionSigned> transactions)
+		public async Task<Miner> MineAsync(Address mineAddress, int? numberOfThreads, BlockHashed lastBlock, IEnumerable<TransactionSigned> transactions)
 		{
 			var miner = MinerFactory.Create(mineAddress, lastBlock, transactions, _feedback);
 			var threadsClosure = numberOfThreads;

@@ -80,23 +80,29 @@ namespace BlockChanPro.Core.Engine.Data
 
 		}
 
-		private void ValidateGenesisBlock(BlockHashed newBlock)
+		public void ValidateGenesisBlock(BlockHashed newBlock)
 		{
 			var expectedSignedGenesis = Genesis.GetBlockData(_cryptography, newBlock.Signed.Data.TimeStamp);
 			ValidateBlockHash(expectedSignedGenesis, newBlock.HashTarget);
 		}
 
-		private void ValidateBlock(BlockHashed lastBlock, BlockHashed newBlock)
+		public void ValidateBlock(BlockHashed lastBlock, BlockHashed newBlock)
 		{
-			if (newBlock.Signed.Data.Index != lastBlock.Signed.Data.Index + 1)
-				throw new BlockchainException("Not sequential block");//TODO: try re-sync
-
+			ValidateParent(lastBlock, newBlock);
 			ValidateHashTarget(lastBlock, newBlock);
 			ValidateBlockHash(newBlock);
-			ValidateBlockTransactions(newBlock);
+			ValidateTransactions(newBlock.Signed.Data.Transactions);
 		}
 
-		private void ValidateHashTarget(BlockHashed lastBlock, BlockHashed newBlock)
+		private static void ValidateParent(BlockHashed lastBlock, BlockHashed newBlock)
+		{
+			if (newBlock.Signed.Data.Index != lastBlock.Signed.Data.Index + 1)
+				throw new BlockchainException("Not sequential block"); //TODO: try re-sync
+			if (newBlock.Signed.Data.ParentHash != lastBlock.HashTarget.Hash)
+				throw new BlockchainException("Parent hash do not match"); //TODO: try re-sync
+		}
+
+		public void ValidateHashTarget(BlockHashed lastBlock, BlockHashed newBlock)
 		{
 			var targetHashBits = Rules.CalculateTargetHash(lastBlock, newBlock.Signed.Data);
 			if (newBlock.Signed.HashTargetBits.Value != targetHashBits.Value)
@@ -106,12 +112,12 @@ namespace BlockChanPro.Core.Engine.Data
 				throw new BlockchainException("Block hash is not below a necessary target");
 		}
 
-		private void ValidateBlockHash(BlockHashed newBlock)
+		public void ValidateBlockHash(BlockHashed newBlock)
 		{
 			ValidateBlockHash(newBlock.Signed, newBlock.HashTarget);
 		}
 
-		private void ValidateBlockHash(BlockSigned blockSigned, HashTarget target)
+		public void ValidateBlockHash(BlockSigned blockSigned, HashTarget target)
 		{
 			var calulatedSignedHash = _cryptography.CalculateHash(blockSigned);
 			var calulatedSignedHashBytes = calulatedSignedHash.ToBinary();
@@ -120,9 +126,18 @@ namespace BlockChanPro.Core.Engine.Data
 				throw new BlockchainException("Block has invalid hash");
 		}
 
-		private void ValidateBlockTransactions(BlockHashed newBlock)
+		public void ValidateTransactions(TransactionSigned[] transactions)
 		{
 			//TODO:
+			foreach (var transaction in transactions)
+				ValidateTransaction(transaction);
+		}
+
+		public void ValidateTransaction(TransactionSigned transaction)
+		{
+			//TODO: Check signature by public key
+			if (transaction.Sign == null)
+				throw new BlockchainException("Transaction is not valid");
 		}
 
 		public bool AddPendingTransaction(TransactionSigned transaction)

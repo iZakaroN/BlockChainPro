@@ -53,7 +53,7 @@ namespace BlockChanPro.Console
 		private static Address? _address;
 		private static bool _webHostLog = true;
 
-		private static readonly Console Console = new Console();
+		private static readonly ConsoleFeedback Console = new ConsoleFeedback();
 		private static DependencyContainer _dependencies;
 		// ReSharper disable once NotAccessedField.Local
 		private static Task _webHostTask;
@@ -76,7 +76,7 @@ namespace BlockChanPro.Console
 					Exit($"Invalid parameter {paramName}");
 				parsedParameters.Add(paramName);
 			}
-			_dependencies = new DependencyContainer(_host, new ConsoleF);
+			_dependencies = new DependencyContainer(_host, Console);
 			Startup.Initialize(
 				_dependencies.Network, 
 				_dependencies.Engine, 
@@ -113,7 +113,7 @@ namespace BlockChanPro.Console
 
 			Thread.Sleep(100);//Wait asp to console out the listening port
 
-			Console.OutMarker();
+			ConsoleFeedback.OutMarker();
 			//_webHostLog = true;
 			_webHostLog = false;
 			if (_trustedPeer != null)
@@ -122,7 +122,7 @@ namespace BlockChanPro.Console
 			//Just for faster testing
 			if (_address == null)
 				_address = new Address("test".Hash());
-			Console.OutMarker();
+			ConsoleFeedback.OutMarker();
 			while (!_exitConsole)
 			{
 				var userInput = new Queue<string>(SplitCommandLine(System.Console.ReadLine()));
@@ -139,7 +139,7 @@ namespace BlockChanPro.Console
 				}
 				else
 				{
-					Console.OutLine($"Unknown command '{command}'. Valid commands are:");
+					ConsoleFeedback.OutLine($"Unknown command '{command}'. Valid commands are:");
 					Help(userInput);
 				}
 			}
@@ -185,7 +185,7 @@ namespace BlockChanPro.Console
 		private static void Help(Queue<string> arguments)
 		{
 			var commandsHelp = CommandParsers.Keys.Aggregate("", (s, c) => s + (s == "" ? "" : ", ") + c);
-			Console.OutLine(commandsHelp);
+			ConsoleFeedback.OutLine(commandsHelp);
 		}
 
 		#region Network
@@ -216,7 +216,7 @@ namespace BlockChanPro.Console
 				_trustedPeer = uri.AbsoluteUri;
 			}
 			else
-				Console.OutLine("No peer address specified");
+				ConsoleFeedback.OutLine("No peer address specified");
 		}
 
 		private static void ConnectToPeer(Queue<string> obj)
@@ -226,7 +226,7 @@ namespace BlockChanPro.Console
 				ConnectToPeer(peer);
 			}
 			else
-				Console.OutLine("No peer address specified");
+				ConsoleFeedback.OutLine("No peer address specified");
 		}
 
 		private static void ConnectToPeer(string url)
@@ -236,11 +236,11 @@ namespace BlockChanPro.Console
 				if (!url.TryParseUrl(out var uri))
 					throw new ArgumentException("Invalid peer url");
 				var peerUrl = uri.AbsoluteUri;
-				Console.OutLine($"Connecting to peer '{peerUrl}' ...");
+				ConsoleFeedback.OutLine($"Connecting to peer '{peerUrl}' ...");
 				var connectedPeers = _dependencies.Engine.ConnectToPeerAsync(peerUrl).GetAwaiter().GetResult();
 				string newPeers = connectedPeers.Aggregate("", (s, v) => (s != "" ? $"{s}, '{v}'" : $"'{v}'"));
 				newPeers = newPeers == "" ? "None" : newPeers;
-				Console.OutLine($"New peers discovered and connected [{newPeers}]");
+				ConsoleFeedback.OutLine($"New peers discovered and connected [{newPeers}]");
 			}
 			catch (Exception e)
 			{
@@ -259,7 +259,7 @@ namespace BlockChanPro.Console
 
 		private static void Exit(string exitMessage)
 		{
-			Console.OutLine(exitMessage);
+			ConsoleFeedback.OutLine(exitMessage);
 			_exitConsole = true;
 		}
 
@@ -271,9 +271,9 @@ namespace BlockChanPro.Console
 				if (arg.TryDequeue(out var threadsArg))
 					if (!Int32.TryParse(threadsArg, out var t))
 					{
-						Console.OutLine("Cannot parse number of cores");
-						Console.OutLine("Description: Start mining. If number of threads is not specified a number logical processor are used specified");
-						Console.OutLine("Usage: > Mine.Start <number of threads>");
+						ConsoleFeedback.OutLine("Cannot parse number of cores");
+						ConsoleFeedback.OutLine("Description: Start mining. If number of threads is not specified a number logical processor are used specified");
+						ConsoleFeedback.OutLine("Usage: > Mine.Start <number of threads>");
 						return;
 					}
 					else
@@ -294,7 +294,7 @@ namespace BlockChanPro.Console
 
 		private static void NoAddress()
 		{
-			Console.OutLine("Recover or Create an address first");
+			ConsoleFeedback.OutLine("Recover or Create an address first");
 		}
 
 		/*private static void Genesis(Queue<string> arg)
@@ -335,13 +335,13 @@ namespace BlockChanPro.Console
 						PendingRecipients.Add(new Recipient(targetAddress, amount));
 						CommandFinished(recipient.SerializeToJson(Formatting.Indented));
 						return;
-					} else Console.OutLine("Cannot parse the amount");
+					} else ConsoleFeedback.OutLine("Cannot parse the amount");
 				}
-				else Console.OutLine("Invalid address");
+				else ConsoleFeedback.OutLine("Invalid address");
 			}
-			else Console.OutLine("Invalid number of arguments");
-			Console.OutLine("Description: Prepare currency to be send to target address. After multiple send operations are prepared, transaction need to be confirmed");
-			Console.OutLine("Usage: >send <targetAddress> <decimal amount>");
+			else ConsoleFeedback.OutLine("Invalid number of arguments");
+			ConsoleFeedback.OutLine("Description: Prepare currency to be send to target address. After multiple send operations are prepared, transaction need to be confirmed");
+			ConsoleFeedback.OutLine("Usage: >send <targetAddress> <decimal amount>");
 		}
 
 		private static void Confirm(Queue<string> arg)
@@ -363,15 +363,15 @@ namespace BlockChanPro.Console
 							CommandFinished(result.SerializeToJson(Formatting.Indented));
 							return;
 						} else
-							Console.OutLine("Password do not match");
+							ConsoleFeedback.OutLine("Password do not match");
 					} else
 						NoAddress();
 				}
-				else Console.OutLine("Cannot parse the fee");
+				else ConsoleFeedback.OutLine("Cannot parse the fee");
 			}
-			else Console.OutLine("Invalid number of arguments");
-			Console.OutLine("Description: Confirm a transaction and send a transaction with all the amounts from pending send operations");
-			Console.OutLine("Usage: >confirm <fee> <password>");
+			else ConsoleFeedback.OutLine("Invalid number of arguments");
+			ConsoleFeedback.OutLine("Description: Confirm a transaction and send a transaction with all the amounts from pending send operations");
+			ConsoleFeedback.OutLine("Usage: >confirm <fee> <password>");
 		}
 		#endregion Transactions
 
@@ -391,11 +391,11 @@ namespace BlockChanPro.Console
 					CommandFinished(_address.SerializeToJson(Formatting.Indented));
 					return;
 				} else
-					Console.OutLine("Password confirmation do not match original password");
+					ConsoleFeedback.OutLine("Password confirmation do not match original password");
 			}
-			else Console.OutLine("Invalid number of arguments");
-			Console.OutLine("Description: Create a new address to be used with the following operations");
-			Console.OutLine("Usage: > Wallet.Create <password>");
+			else ConsoleFeedback.OutLine("Invalid number of arguments");
+			ConsoleFeedback.OutLine("Description: Create a new address to be used with the following operations");
+			ConsoleFeedback.OutLine("Usage: > Wallet.Create <password>");
 		}
 
 		private static void WalletRecover(Queue<string> arg)
@@ -405,9 +405,9 @@ namespace BlockChanPro.Console
 				_address = new Address(arg.Dequeue().Hash());
 				CommandFinished(_address.SerializeToJson(Formatting.Indented));
 			}
-			else Console.OutLine("Invalid number of arguments");
-			Console.OutLine("Description: Recover an existing address to be used with the following operations");
-			Console.OutLine("Usage: > Wallet.Recover <password>");
+			else ConsoleFeedback.OutLine("Invalid number of arguments");
+			ConsoleFeedback.OutLine("Description: Recover an existing address to be used with the following operations");
+			ConsoleFeedback.OutLine("Usage: > Wallet.Recover <password>");
 		}
 
 		#endregion Address
@@ -417,10 +417,10 @@ namespace BlockChanPro.Console
 		{
 			if (!string.IsNullOrWhiteSpace(commandResult))
 			{
-				Console.OutLine("Accepted ->");
-				Console.OutLine(commandResult);
+				ConsoleFeedback.OutLine("Accepted ->");
+				ConsoleFeedback.OutLine(commandResult);
 			} else
-				Console.OutLine("Accepted");
+				ConsoleFeedback.OutLine("Accepted");
 		}
 	}
 }
