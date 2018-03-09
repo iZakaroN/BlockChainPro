@@ -18,7 +18,7 @@ namespace BlockChanPro.Core.Engine
 			Address inFavor, 
 			BlockHashed lastBlock, 
 			IEnumerable<TransactionSigned> transactionsToProcess,
-			IFeedBack feedback)
+			IFeedback feedback)
 		{
 			var blockToProcess = GetNewBlock(inFavor, lastBlock, transactionsToProcess);
 
@@ -29,7 +29,7 @@ namespace BlockChanPro.Core.Engine
 
 		public  Miner Create(
 			BlockSigned signedBlock,
-			IFeedBack feedback)
+			IFeedback feedback)
 		{
 			var signedBlockHash = _cryptography.CalculateHash(signedBlock);
 			return new Miner(signedBlock.HashTargetBits, signedBlock, signedBlockHash, _cryptography, feedback);

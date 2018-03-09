@@ -11,11 +11,11 @@ namespace BlockChanPro.Core
 	    public readonly IChainData ChainData;
 	    public readonly Engine.Engine Engine;
 
-	    public DependencyContainer(string host, IFeedBack feedback)
+	    public DependencyContainer(string host, IFeedback feedback)
 	    {
 
 		    Cryptography = new Cryptography();
-			Network = new P2PNetwork(host);
+			Network = new P2PNetwork(feedback, host);
 			ChainData = new ChainData(feedback, Cryptography);
 			Engine = new Engine.Engine(feedback, Network, ChainData);
 	    }

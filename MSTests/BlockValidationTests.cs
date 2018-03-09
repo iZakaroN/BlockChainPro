@@ -13,7 +13,7 @@ namespace BlockChanPro.MSTESTS
 	public class BlockValidationTests
 	{
 		private readonly Address _address;
-		private readonly IFeedBack _feedback;
+		private readonly IFeedback _feedback;
 		private readonly Cryptography _cryptography;
 		private readonly MinerFactory _minerFactory;
 		private readonly ChainData _chainData;
@@ -91,7 +91,7 @@ namespace BlockChanPro.MSTESTS
 		[TestMethod]
 		public async Task GenerateBlock_10_Validate()
 		{
-			var block = await GenerateBlock(10, null);
+			var block = await GenerateBlock(10);
 			var nextBlock = await GenerateBlock(block);
 
 			_chainData.ValidateBlock(block, nextBlock);
@@ -116,14 +116,14 @@ namespace BlockChanPro.MSTESTS
 			return await genesisMiner.GetBlock();
 		}
 
-		private async Task<BlockHashed> GenerateBlock(BlockHashed previousBlock, int? threads = 1)
+		private async Task<BlockHashed> GenerateBlock(BlockHashed previousBlock, int? threads = null)
 		{
 			var miner = _minerFactory.Create(_address, previousBlock, new TransactionSigned[] { }, _feedback);
-			miner.Start(1);
+			miner.Start(threads ?? Environment.ProcessorCount);
 			return await miner.GetBlock();
 		}
 
-		private async Task<BlockHashed> GenerateBlock(int blockNumber, int? threads = 1)
+		private async Task<BlockHashed> GenerateBlock(int blockNumber, int? threads = null)
 		{
 			var previousBlock = await GenerateGenesisBlock();
 			while (blockNumber-- > 0)

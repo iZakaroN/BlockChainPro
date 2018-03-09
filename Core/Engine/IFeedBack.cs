@@ -5,7 +5,7 @@ using BlockChanPro.Model.Contracts;
 
 namespace BlockChanPro.Core.Engine
 {
-	public interface IFeedBack
+	public interface IFeedback
 	{
 		void MineNewBlock(long difficulty, HashBits targetBits);
 		void StartProcess(int threadsCount);
@@ -14,6 +14,7 @@ namespace BlockChanPro.Core.Engine
 		void NewBlockMined(int blockHeight, long mineTime);
 		void NewBlockRejected(int blockHeight, long blockTime, Hash blockHash, string message);
 		void NewTransaction(TransactionSigned transaction);
+		void NewPeer(string peerUrl);
 
 		void HashProgress(ulong hashesCalculated);
 		void MinedBlockCanceled();
@@ -24,7 +25,7 @@ namespace BlockChanPro.Core.Engine
 
 	public static class FeedbackExtensions
 	{
-		public static async Task Execute(this IFeedBack feedback, string operationName, Func<Task> operation, Func<string> logParameters = null)
+		public static async Task Execute(this IFeedback feedback, string operationName, Func<Task> operation, Func<string> logParameters = null)
 		{
 			try
 			{
@@ -39,7 +40,7 @@ namespace BlockChanPro.Core.Engine
 			}
 		}
 
-		public static void Execute(this IFeedBack feedback, string operationName, Action operation, Func<string> logParameters = null)
+		public static void Execute(this IFeedback feedback, string operationName, Action operation, Func<string> logParameters = null)
 		{
 			try
 			{
@@ -54,7 +55,7 @@ namespace BlockChanPro.Core.Engine
 			}
 		}
 
-		public static async Task<T> Execute<T>(this IFeedBack feedback, string operationName, Func<Task<T>> operation, Func<string> logParameters = null)
+		public static async Task<T> Execute<T>(this IFeedback feedback, string operationName, Func<Task<T>> operation, Func<string> logParameters = null)
 		{
 			try
 			{
@@ -71,7 +72,7 @@ namespace BlockChanPro.Core.Engine
 			}
 		}
 
-		public static T Execute<T>(this IFeedBack feedback, string operationName, Func<T> operation, Func<string> logParameters = null)
+		public static T Execute<T>(this IFeedback feedback, string operationName, Func<T> operation, Func<string> logParameters = null)
 		{
 			try
 			{

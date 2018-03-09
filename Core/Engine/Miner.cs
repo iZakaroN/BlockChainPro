@@ -29,7 +29,7 @@ namespace BlockChanPro.Core.Engine
 		//TODO: Change with factory to separate crypto use with every miner thread
 		// ReSharper disable once NotAccessedField.Local //See todo
 		private readonly Cryptography _cryptography;
-		private readonly IFeedBack _feedback;
+		private readonly IFeedback _feedback;
 		
 		public Address Address => _signedBlock.Stamp;
 
@@ -38,7 +38,7 @@ namespace BlockChanPro.Core.Engine
 			BlockSigned signedBlock, 
 			Hash signedBlockHash, 
 			Cryptography cryptography,
-			IFeedBack feedback)
+			IFeedback feedback)
 		{
 			_hashTarget = hashTargetBits.ToHash();
 			_signedBlock = signedBlock;
@@ -220,7 +220,6 @@ namespace BlockChanPro.Core.Engine
 				}
 				catch (Exception e)
 				{
-					_feedback.Error("ManageTasks", e.Message);
 					if (_taskManagerWait.IsCancellationRequested)
 					{
 						if (!_taskManagerWork.IsCancellationRequested)

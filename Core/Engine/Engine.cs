@@ -13,7 +13,7 @@ namespace BlockChanPro.Core.Engine
 	//TODO: Separate miner in different interface and probably class (at least as preparation for pooled mining)
 	public class Engine : IEngine
 	{
-	    private readonly IFeedBack _feedback;
+	    private readonly IFeedback _feedback;
 		private readonly IP2PNetwork _network;
 		private readonly IChainData _chainData;
 		private readonly ManualResetEventSlim _minerSync = new ManualResetEventSlim(true);
@@ -27,7 +27,7 @@ namespace BlockChanPro.Core.Engine
 	    private Task _minerTask;
 
 		public Engine(
-			IFeedBack feedback, 
+			IFeedback feedback, 
 			IP2PNetwork network, 
 			IChainData chainData)
 	    {
@@ -166,7 +166,7 @@ namespace BlockChanPro.Core.Engine
 			return Task.CompletedTask;
 		}
 
-		public Task<string[]> ConnectToPeerAsync(string url)
+		public Task<int> ConnectToPeerAsync(string url)
 		{
 			return _network.ConnectToPeerAsync(url);
 		}

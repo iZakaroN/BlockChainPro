@@ -2,7 +2,7 @@
 
 namespace BlockChanPro.Core.Engine
 {
-	public class NullFeedBack : IFeedBack
+	public class NullFeedBack : IFeedback
 	{
 		public void MineNewBlock(long difficulty, HashBits targetBits)
 		{
@@ -25,6 +25,10 @@ namespace BlockChanPro.Core.Engine
 		}
 
 		public void NewTransaction(TransactionSigned transaction)
+		{
+		}
+
+		public void NewPeer(string peerUrl)
 		{
 		}
 

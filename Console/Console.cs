@@ -237,14 +237,12 @@ namespace BlockChanPro.Console
 					throw new ArgumentException("Invalid peer url");
 				var peerUrl = uri.AbsoluteUri;
 				ConsoleFeedback.OutLine($"Connecting to peer '{peerUrl}' ...");
-				var connectedPeers = _dependencies.Engine.ConnectToPeerAsync(peerUrl).GetAwaiter().GetResult();
-				string newPeers = connectedPeers.Aggregate("", (s, v) => (s != "" ? $"{s}, '{v}'" : $"'{v}'"));
-				newPeers = newPeers == "" ? "None" : newPeers;
-				ConsoleFeedback.OutLine($"New peers discovered and connected [{newPeers}]");
+				var knownNodes = _dependencies.Engine.ConnectToPeerAsync(peerUrl).GetAwaiter().GetResult();
+				ConsoleFeedback.OutLine($"Connect to network succeeded. Total known nodes {knownNodes}");
 			}
 			catch (Exception e)
 			{
-				Console.Error("connect", e.Message);
+				Console.Error("Connect", e.Message);
 			}
 		}
 		#endregion Network

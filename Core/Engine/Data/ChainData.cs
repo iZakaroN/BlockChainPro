@@ -24,7 +24,7 @@ namespace BlockChanPro.Core.Engine.Data
 
 	public class ChainData : IChainData
 	{
-		private readonly IFeedBack _feedback;
+		private readonly IFeedback _feedback;
 		private readonly Cryptography _cryptography;
 
 		private List<BlockHashed> Chain { get; }
@@ -32,7 +32,7 @@ namespace BlockChanPro.Core.Engine.Data
 		private ConcurrentDictionary<Hash, TransactionSigned> PendingTransactions { get; }
 
 		public ChainData(
-			IFeedBack feedback,
+			IFeedback feedback,
 			Cryptography cryptography)
 		{
 			_feedback = feedback;
