@@ -6,7 +6,7 @@ using BlockChanPro.Model.Serialization;
 
 namespace BlockChanPro.Console
 {
-    internal class Console : IFeedBack
+    public  class Console : IFeedBack
     {
 		private readonly object _lock = new object();
 	    private static readonly TimeSpan HashRateTime = TimeSpan.FromSeconds(1);
