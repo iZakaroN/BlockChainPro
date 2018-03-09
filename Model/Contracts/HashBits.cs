@@ -5,7 +5,7 @@ namespace BlockChanPro.Model.Contracts
 {
     public class HashBits
     {
-	    public static readonly HashBits MinTarget = new HashBits(0x00, 0xffffffffffffff);
+	    public static readonly HashBits MinTarget = Create(0x00, 0xffffffffffffff);
         public const int OffsetByteSize = sizeof(byte);
         public const int OffsetBitSize = sizeof(byte) * 8;
         private const int OffsetShift = (sizeof(ulong) - OffsetByteSize) * 8;
@@ -18,15 +18,15 @@ namespace BlockChanPro.Model.Contracts
             Value = value;
         }
 
-        public HashBits(byte offset, ulong fraction)
+        public static HashBits Create(byte offset, ulong fraction)
         {
             Contract.Requires(offset <= OffsetMax, nameof(offset));
             Contract.Requires((fraction & ~OffsetMask) == fraction, nameof(fraction));
             var offsetEncoded = (ulong)offset << OffsetShift;
-            Value = offsetEncoded | fraction;
+			return new HashBits(offsetEncoded | fraction);
         }
 
-        [JsonConverter(typeof(HexStringJsonConverter))]
+        //[JsonConverter(typeof(HexStringJsonConverter))]
         public ulong Value { get; }
 
         /// <summary>

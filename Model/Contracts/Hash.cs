@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace BlockChanPro.Model.Contracts
 {
-    public struct Hash
+    public class Hash
 	{
 		public const int BitLength = 256;
         public const int SegmentByteSize = sizeof(byte);
@@ -15,11 +15,12 @@ namespace BlockChanPro.Model.Contracts
 	    public static long SegmentValueLimit = SegmentMask + 1;
 
 
-        public Hash(byte[] hashSegments)
+        public Hash(byte[] value)
 		{
-			Contract.Requires(hashSegments.Length == SegmentsLength, $"{nameof(hashSegments)}");
+			Contract.Requires(value, $"{nameof(value)}");
+			Contract.Requires(value.Length == SegmentsLength, $"{nameof(value.Length)}");
 
-			Value = hashSegments;
+			Value = value;
 		}
 
         public void Increment(long value)
@@ -68,18 +69,18 @@ namespace BlockChanPro.Model.Contracts
             return EqualityComparer<byte[]>.Default.Equals(Value, hash.Value);
         }
 
-        public override int GetHashCode()
-        {
-            var hashCode = -783812246;
-            hashCode = hashCode * -1521134295 + base.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<byte[]>.Default.GetHashCode(Value);
-            return hashCode;
-        }
-
-        public static bool operator ==(Hash a, Hash b)
+		public override int GetHashCode()
 		{
-			if (a.Value.Length != b.Value.Length)
+			return (Value != null ? Value.GetHashCode() : 0);
+		}
+
+
+		public static bool operator ==(Hash a, Hash b)
+		{
+			if (a?.Value.Length != b?.Value.Length)
 				return false;
+			if (a == null)
+				return true;
 			for (var i = 0; i < a.Value.Length; i++)
 				if (a.Value[i] != b.Value[i])
 					return false;

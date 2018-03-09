@@ -2,9 +2,9 @@ namespace BlockChanPro.Model.Contracts
 {
 	public class BlockSigned
 	{
-		public BlockSigned(BlockData block, Address stamp, HashBits hashTargetBits)
+		public BlockSigned(BlockData data, Address stamp, HashBits hashTargetBits)
 		{
-            Data = block;
+            Data = data;
 			Stamp = stamp;
             HashTargetBits = hashTargetBits;
 		}

@@ -2,7 +2,13 @@
 {
     public class BlockBundle
     {
-	    public BlockHashed Block;
-	    public string Sender;
-    }
+	    public BlockHashed Block { get; }
+	    public string Sender { get; }
+
+	    public BlockBundle(BlockHashed block, string sender)
+	    {
+		    Block = block;
+		    Sender = sender;
+	    }
+	}
 }

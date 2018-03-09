@@ -2,9 +2,9 @@ namespace BlockChanPro.Model.Contracts
 {
     public class BlockHashed
 	{
-		public BlockHashed(BlockSigned block, HashTarget hashTarget)
+		public BlockHashed(BlockSigned signed, HashTarget hashTarget)
 		{
-            Signed = block;
+            Signed = signed;
 			HashTarget = hashTarget;
 		}
 

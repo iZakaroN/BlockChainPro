@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using BlockChanPro.Core;
@@ -13,6 +14,7 @@ using BlockChanPro.Web.Api;
 using BlockChanPro.Web.Client;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace BlockChanPro.Console
@@ -25,8 +27,8 @@ namespace BlockChanPro.Console
 				{"-a", ParseAddress},
 				{"-ap", ParseAddressPassword},
 				{"-?", Help},
-				{"-h", SetHost},
-				{"-p", SetTrustedPeer}
+				{"-p", SetHostPort},
+				{"-c", SetTrustedPeer}
 			};
 
 		private static readonly Dictionary<string, Action<Queue<string>>> CommandParsers = new Dictionary<string, Action<Queue<string>>>(StringComparer.OrdinalIgnoreCase)
@@ -39,6 +41,8 @@ namespace BlockChanPro.Console
 			{"Send", Send },
 			{"Confirm", Confirm },
 			{"Info", Info },
+			{"Log.Off", TurnLogOff },
+			{"Log.On", TurnLogOn },
 			{"Exit", Exit},
 
 		};
@@ -47,17 +51,18 @@ namespace BlockChanPro.Console
 		private static string _host;
 		private static string _trustedPeer;
 		private static Address? _address;
-		private static bool _logWebHost = true;
+		private static bool _webHostLog = true;
 
 		private static readonly Console Console = new Console();
 		private static DependencyContainer _dependencies;
 		// ReSharper disable once NotAccessedField.Local
 		private static Task _webHostTask;
 		private static readonly CancellationTokenSource WebHostCancel = new CancellationTokenSource();
-		private static CancellationToken _webHostStarted;
+		private static IApplicationLifetime _applicationLifetime;
 
 		private static void Main(string[] args)
 		{
+			SetHostPort(5000);
 			var parsedParameters = new HashSet<string>();
 
 			var paramQueue = new Queue<string>(args);
@@ -72,7 +77,11 @@ namespace BlockChanPro.Console
 				parsedParameters.Add(paramName);
 			}
 			_dependencies = new DependencyContainer(_host, Console);
-			Startup.Initialize(_dependencies.Network, _dependencies.Engine, (s,l) => false, c => _webHostStarted = c);
+			Startup.Initialize(
+				_dependencies.Network, 
+				_dependencies.Engine, 
+				(s,l) => l > LogLevel.Error || _webHostLog, 
+				appLifetime => _applicationLifetime = appLifetime);
 
 			var webHost = new WebHostBuilder()
 				.UseKestrel()
@@ -95,10 +104,18 @@ namespace BlockChanPro.Console
 			_webHostTask = webHost.RunAsync(WebHostCancel.Token);
 			//webHost.Start();
 			//_webHostTask = Host.BuildWebHost(_host).RunAsync(WebHostCancel.Token);
-			_webHostStarted.WaitHandle.WaitOne();
+			//TODO: Cleanup all this web host/console sync shits and use execution chain of Startup
+			WaitHandle.WaitAny(new[]
+			{
+				_applicationLifetime.ApplicationStopping.WaitHandle,
+				_applicationLifetime.ApplicationStarted.WaitHandle,
+			});
+
+			Thread.Sleep(100);//Wait asp to console out the listening port
 
 			Console.OutMarker();
-			_logWebHost = false;
+			//_webHostLog = true;
+			_webHostLog = false;
 			if (_trustedPeer != null)
 				ConnectToPeer(_trustedPeer);
 
@@ -172,17 +189,24 @@ namespace BlockChanPro.Console
 		}
 
 		#region Network
-		private static void SetHost(Queue<string> obj)
+		private static void SetHostPort(Queue<string> obj)
 		{
-			if (obj.TryDequeue(out var host))
+			if (obj.TryDequeue(out var portString) && Int32.TryParse(portString, out var port))
 			{
-				if (!host.TryParseUrl(out var uri))
-					throw new ArgumentException("Invalid host url");
-				_host = uri.AbsoluteUri;
+				SetHostPort(port);
 			}
 			else
-				Exit("No listening address specified");
+				Exit("No listening port specified");
 		}
+
+		private static void SetHostPort(int port)
+		{
+			var host = $"{Dns.GetHostName()}:{port}";
+			if (!host.TryParseUrl(out var uri))
+				throw new ArgumentException("Invalid host url");
+			_host = uri.AbsoluteUri;
+		}
+
 		private static void SetTrustedPeer(Queue<string> obj)
 		{
 			if (obj.TryDequeue(out var host))
@@ -284,6 +308,17 @@ namespace BlockChanPro.Console
 			var result = _dependencies.ChainData.CalulateTransactionsInfo();
 			CommandFinished(result.SerializeToJson(Formatting.Indented));
 		}
+
+		private static void TurnLogOn(Queue<string> obj)
+		{
+			_webHostLog = true;
+		}
+
+		private static void TurnLogOff(Queue<string> obj)
+		{
+			_webHostLog = false;
+		}
+
 
 		#region Transactions
 		private static readonly List<Recipient> PendingRecipients = new List<Recipient>();

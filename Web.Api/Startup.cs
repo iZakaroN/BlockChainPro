@@ -15,7 +15,7 @@ namespace BlockChanPro.Web.Api
 	    private static IP2PNetwork _network;
 	    private static IEngine _engine;
 	    private static Func<string, LogLevel, bool> _consoleLogFilter;
-	    private static Action<CancellationToken> _applicationStartedToken;
+	    private static Action<IApplicationLifetime> _applicationLifetimeCreated;
 
 		public Startup(IConfiguration configuration)
         {
@@ -29,12 +29,12 @@ namespace BlockChanPro.Web.Api
 		    IP2PNetwork network, 
 		    IEngine engine, 
 		    Func<string, LogLevel, bool> consoleLogFilter,
-		    Action<CancellationToken> applicationStartedToken)
+		    Action<IApplicationLifetime> applicationLifetimeCreated)
 	    {
 		    _network = network;
 		    _engine = engine;
 		    _consoleLogFilter = consoleLogFilter;
-		    _applicationStartedToken = applicationStartedToken;
+		    _applicationLifetimeCreated = applicationLifetimeCreated;
 	    }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -49,7 +49,7 @@ namespace BlockChanPro.Web.Api
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, IApplicationLifetime applicationLifetime)
         {
-	        _applicationStartedToken(applicationLifetime.ApplicationStarted);
+	        _applicationLifetimeCreated(applicationLifetime);
 
 			loggerFactory.AddConsole(_consoleLogFilter, false);
 	        loggerFactory.AddDebug(_consoleLogFilter);

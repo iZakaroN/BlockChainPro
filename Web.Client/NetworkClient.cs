@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BlockChanPro.Model.Contracts;
 using BlockChanPro.Model.Interfaces;
@@ -36,14 +38,16 @@ namespace Web.Shared
 			return await response.Content.ReadAsJsonAsync<string[]>();
 	    }
 
-	    public Task BroadcastAsync(TransactionsBundle transactions)
+	    public async Task BroadcastAsync(TransactionsBundle transactions)
 	    {
-		    return _httpClient.PostAsJsonAsync(ApiConstants.Transactions, transactions);
+		    var response = await _httpClient.PostAsJsonAsync(ApiConstants.Transactions, transactions);
+		    DebugResponse(response);
 	    }
 
-	    public Task BroadcastAsync(BlockBundle block)
+		public async Task BroadcastAsync(BlockBundle block)
 	    {
-		    return _httpClient.PostAsJsonAsync(ApiConstants.Blocks, block);
+		    var response = await _httpClient.PostAsJsonAsync(ApiConstants.Blocks, block);
+		    DebugResponse(response);
 	    }
 
 		public Uri Host => _httpClient.BaseAddress;
@@ -53,6 +57,11 @@ namespace Web.Shared
 		    var version = await GetVersionAsync();
 			if (version != ApiConstants.Version)
 			    throw new ApiException($"Peer has invalid api version 'v{version}'. Expected '{ApiConstants.Version}'");
+	    }
+
+	    private void DebugResponse(HttpResponseMessage response, [CallerMemberName]string caller = null)
+	    {
+		    Debug.WriteLine($"{_httpClient.BaseAddress}/{caller} => {response.StatusCode}");
 	    }
 	}
 }

@@ -68,15 +68,15 @@ namespace BlockChanPro.Core.Engine
 			RefreshTaskManager();
 		}
 
-		public bool Canceled { get; private set; }
+		public bool Stopped { get; private set; }
 		public long Difficulty => _signedBlock.HashTargetBits.Difficulty(Genesis.Target);
 		public HashBits TargetBits => _signedBlock.HashTargetBits;
 		public int Threads { get; internal set; }
 
 		public void Stop()
 		{
-			Canceled = true;
-			CancelTaskManager();
+			Stopped = true;
+			Cancel();
 		}
 
 		private void RemoveTasks(int taskCount)
@@ -113,7 +113,7 @@ namespace BlockChanPro.Core.Engine
 						var nounce = _nextNounce;
 						task.Start(cancellationToken =>
 							FindHashTarget(
-								new HashBits(HashBits.OffsetMax, nounce),
+								HashBits.Create(HashBits.OffsetMax, nounce),
 								NounceStep,
 								cancellationToken));
 						_tasks.Enqueue(task);
@@ -159,7 +159,7 @@ namespace BlockChanPro.Core.Engine
 			return result != null ? new BlockHashed(_signedBlock, result) : null;
 		}
 
-		private void CancelTaskManager()
+		public void Cancel()
 		{
 			_taskManagerWork?.Cancel();
 			_taskManager?.Wait();

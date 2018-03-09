@@ -12,6 +12,7 @@ namespace BlockChanPro.Core.Engine
 
 		void NewBlockAccepted(int blockHeight, long blockTime, Hash blockHash);
 		void NewBlockMined(int blockHeight, long mineTime);
+		void NewBlockRejected(int blockHeight, long blockTime, Hash blockHash, string message);
 		void NewTransaction(TransactionSigned transaction);
 
 		void HashProgress(ulong hashesCalculated);

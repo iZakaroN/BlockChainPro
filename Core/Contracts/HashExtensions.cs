@@ -105,8 +105,8 @@ namespace BlockChanPro.Core.Contracts
 			    if (newOffset < minTarget.GetBitOffset())
 				    return minTarget;
 			    else if (newOffset > HashBits.OffsetMax)
-				    return new HashBits(HashBits.OffsetMax, fractionAdjust >> (newOffset - HashBits.OffsetMax));
-			    return new HashBits((byte)newOffset, fractionAdjust);
+				    return HashBits.Create(HashBits.OffsetMax, fractionAdjust >> (newOffset - HashBits.OffsetMax));
+			    return HashBits.Create((byte)newOffset, fractionAdjust);
 
 		    }
 		    return @this;

@@ -68,7 +68,12 @@ namespace BlockChanPro.Console
 		    OutLine($"# New block mined, H:{blockHeight}, DT:{TimeSpan.FromTicks(mineTime)}");
 	    }
 
-	    public void NewTransaction(TransactionSigned transaction)
+	    public void NewBlockRejected(int blockHeight, long blockTime, Hash blockHash, string message)
+	    {
+		    OutLine($"# New block rejected, H:{blockHeight}, DT:{TimeSpan.FromTicks(blockTime)}, BH:{blockHash.Value.ToHexString()}, => {message}");
+	    }
+
+		public void NewTransaction(TransactionSigned transaction)
 	    {
 		    OutLine($"# New transaction accepted, TH:{transaction.Sign.Value.ToHexString()}");
 	    }

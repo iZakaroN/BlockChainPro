@@ -40,7 +40,7 @@ namespace BlockChanPro.Core.Contracts
 			return signedBlock;
 		}
 
-		public static readonly HashBits Target = new HashBits(0x0f, 0xffffffffffffff);
+		public static readonly HashBits Target = HashBits.Create(0x0f, 0xffffffffffffff);
 
 		public static Hash Hash => new Hash(new byte[]
 		{

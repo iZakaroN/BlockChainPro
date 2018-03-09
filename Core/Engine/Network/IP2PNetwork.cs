@@ -13,6 +13,6 @@ namespace BlockChanPro.Core.Engine.Network
 
 		Task BroadcastAsync(TransactionSigned[] transactions);
 
-		Task Broadcast(BlockHashed block);
+		Task BroadcastAsync(BlockHashed block);
 	}
 }

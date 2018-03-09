@@ -22,9 +22,11 @@ namespace BlockChanPro.Core.Engine.Network
 
 		public async Task<string[]> ConnectPeerAsync(string webAddress)
 	    {
-		    var result = await GetConnectionsAsync();
+		    //Remove client from peers in case it was reconnecting
+			var result = _peers.Keys.
+			    Where( p => string.Compare(p, webAddress, StringComparison.InvariantCultureIgnoreCase) != 0); 
 		    await RegisterConnectionAsync(webAddress);
-		    return result;
+		    return result.ToArray();
 	    }
 
 	    public async Task<string[]> ConnectToPeerAsync(string webAddress)
@@ -64,7 +66,7 @@ namespace BlockChanPro.Core.Engine.Network
 		    }
 		}
 
-	    public async Task Broadcast(BlockHashed block)
+	    public async Task BroadcastAsync(BlockHashed block)
 	    {
 		    foreach (var peer in _peers)
 		    {
@@ -72,12 +74,7 @@ namespace BlockChanPro.Core.Engine.Network
 			    //Send transaction only to other peers
 				//if (string.Compare(peer.Key, _peerUrl, StringComparison.InvariantCultureIgnoreCase) != 0)
 				{
-					await peer.Value.Client.BroadcastAsync(
-					    new BlockBundle
-					    {
-						    Sender = _peerUrl,
-						    Block = block
-					    });
+					await peer.Value.Client.BroadcastAsync(new BlockBundle(block, _peerUrl));
 			    }
 		    }
 	    }
@@ -85,18 +82,21 @@ namespace BlockChanPro.Core.Engine.Network
 	    private async Task<bool> TryRegisterConnectionAsync(string peerUrl)
 	    {
 		    try
-		    {
-			    await RegisterConnectionAsync(peerUrl);
-			    return true;
+			{
+				//Prevent looping to self
+				if (string.Compare(peerUrl, _peerUrl, StringComparison.InvariantCultureIgnoreCase) != 0)
+				{
 
-		    }
-		    catch (Exception)
-		    {
-			    return false;
-		    }
+					await RegisterConnectionAsync(peerUrl);
+					return true;
+				}
+
+			}
+		    catch (Exception) {/*ignore*/}
+		    return false;
 	    }
 
-	    private async Task<PeerConnection> RegisterConnectionAsync(string url)
+		private async Task<PeerConnection> RegisterConnectionAsync(string url)
 	    {
 		    var client = _networkClientFactory.Create(url);
 		    await client.CheckAccessAsync();

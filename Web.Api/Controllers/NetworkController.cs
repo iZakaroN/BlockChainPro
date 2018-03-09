@@ -1,9 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Threading.Tasks;
 using BlockChanPro.Core.Engine;
 using BlockChanPro.Core.Engine.Network;
 using BlockChanPro.Model.Contracts;
 using BlockChanPro.Model.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace BlockChanPro.Web.Api.Controllers
 {
@@ -34,18 +37,40 @@ namespace BlockChanPro.Web.Api.Controllers
 		[HttpPost(ApiConstants.Connections)]
         public Task<string[]> ConnectAsync([FromBody]string address)
         {
-	        return _netwrok.ConnectPeerAsync(address);
+			//TODO: Retrieve ip from request, leave only port as parameter. Remove Sender from bundles
+			return _netwrok.ConnectPeerAsync(address);
         }
 
 		[HttpPost(ApiConstants.Transactions)]
 		public Task BroadcastAsync([FromBody]TransactionsBundle transactions)
 		{
+			//var remoteIpAddress = httpContext.GetFeature<IHttpConnectionFeature>()?.RemoteIpAddress
 			return _engine.AcceptTransactionsAsync(transactions);
 		}
 
-		public Task BroadcastAsync([FromBody]BlockBundle block)
+		//[HttpPost(ApiConstants.Blocks)]
+		public async Task BroadcastAsync([FromBody]BlockBundle block)
 		{
-			return _engine.AcceptBlockAsync(block);
+			await _engine.AcceptBlockAsync(block);
 		}
+
+		[HttpPost(ApiConstants.Blocks)]
+		public async Task BroadcastAsync()
+		{
+			//var block = JsonConvert.DeserializeObject<BlockBundle>(data);
+			var block = await ReadAsJsonAsync<BlockBundle>(Request);
+			await _engine.AcceptBlockAsync(block);
+		}
+
+		public static async Task<T> ReadAsJsonAsync<T>(HttpRequest request)
+		{
+			using (var stream = new StreamReader(request.Body))
+			{
+				var body = await stream.ReadToEndAsync();
+				return JsonConvert.DeserializeObject<T>(body);
+			}
+		}
+
+
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using BlockChanPro.Core.Contracts;
@@ -56,17 +57,26 @@ namespace BlockChanPro.Core.Engine.Data
 		public void AddNewBlock(BlockHashed newBlock)
 		{
 			var lastBlock = GetLastBlock();
-			if (lastBlock == null)
+			var blockTime = newBlock.Signed.Data.TimeStamp - lastBlock?.Signed.Data.TimeStamp ?? 0;
+			try
 			{
-				ValidateGenesisBlock(newBlock);
-			}
-			else
-			{
-				ValidateBlock(lastBlock, newBlock);
-				RemovePendingTransactions(newBlock.Signed.Data.Transactions);
-			}
+				if (lastBlock == null)
+				{
+					ValidateGenesisBlock(newBlock);
+				}
+				else
+				{
+					ValidateBlock(lastBlock, newBlock);
+					RemovePendingTransactions(newBlock.Signed.Data.Transactions);
+				}
 
-			Chain.Add(newBlock);
+				Chain.Add(newBlock);
+				_feedback.NewBlockAccepted(newBlock.Signed.Data.Index, blockTime, newBlock.HashTarget.Hash);
+			}
+			catch (Exception e)
+			{
+				_feedback.NewBlockRejected(newBlock.Signed.Data.Index, blockTime, newBlock.HashTarget.Hash, e.Message);
+			}
 
 		}
 
@@ -74,7 +84,6 @@ namespace BlockChanPro.Core.Engine.Data
 		{
 			var expectedSignedGenesis = Genesis.GetBlockData(_cryptography, newBlock.Signed.Data.TimeStamp);
 			ValidateBlockHash(expectedSignedGenesis, newBlock.HashTarget);
-			_feedback.NewBlockAccepted(newBlock.Signed.Data.Index, 0, newBlock.HashTarget.Hash);
 		}
 
 		private void ValidateBlock(BlockHashed lastBlock, BlockHashed newBlock)
@@ -85,9 +94,6 @@ namespace BlockChanPro.Core.Engine.Data
 			ValidateHashTarget(lastBlock, newBlock);
 			ValidateBlockHash(newBlock);
 			ValidateBlockTransactions(newBlock);
-
-			var blockTime = newBlock.Signed.Data.TimeStamp - lastBlock.Signed.Data.TimeStamp;
-			_feedback.NewBlockAccepted(newBlock.Signed.Data.Index, blockTime, newBlock.HashTarget.Hash);
 		}
 
 		private void ValidateHashTarget(BlockHashed lastBlock, BlockHashed newBlock)

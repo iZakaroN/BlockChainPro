@@ -7,13 +7,9 @@ namespace BlockChanPro.Model.Contracts
 	{
 		public static long BlockTime = TimeSpan.FromSeconds(5).Ticks;
 
-		public BlockData()
-		{
-			
-		}
-		public BlockData(int number, long timeStamp, string message, TransactionSigned[] transactions, Hash previousHash)
+		public BlockData(int index, long timeStamp, string message, TransactionSigned[] transactions, Hash previousHash)
 	    {
-		    Index = number;
+		    Index = index;
 		    TimeStamp = timeStamp;
 		    Message = message;
 		    Transactions = transactions;
@@ -21,7 +17,7 @@ namespace BlockChanPro.Model.Contracts
 	    }
 
 		public int Index { get; }
-	    public long TimeStamp { get; set; }
+		public long TimeStamp { get; }
 
 		// TODO: move message to transaction
         public string Message { get; }

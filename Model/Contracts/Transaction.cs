@@ -7,10 +7,6 @@ namespace BlockChanPro.Model.Contracts
 	{
 		public static int BlockCountRewardReduction = 0x100;
 
-		public Transaction()
-		{
-			
-		}
 		public Transaction(Address sender, Recipient[] recipients, decimal fee, long? timeStamp = null)
 		{
 			Sender = sender;

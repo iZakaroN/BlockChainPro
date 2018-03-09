@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using BlockChanPro.Core.Contracts;
 using BlockChanPro.Core.Engine.Data;
@@ -14,6 +15,7 @@ namespace BlockChanPro.Core.Engine
 	    private readonly IFeedBack _feedback;
 		private readonly IP2PNetwork _network;
 		private readonly IChainData _chainData;
+		private readonly ManualResetEventSlim _minerSync = new ManualResetEventSlim(true);
 
 		//TODO: inject from factory
 		private static readonly Cryptography Cryptography = new Cryptography();
@@ -56,14 +58,15 @@ namespace BlockChanPro.Core.Engine
 
 		    do
 		    {
-			    var lastBlock = _chainData.GetLastBlock();
+			    _minerSync.Wait();
+				var lastBlock = _chainData.GetLastBlock();
 			    var miner = MinerFactory.Create(mineAddress, lastBlock, _chainData.SelectTransactionsToMine(), _feedback);
 			    var threadsClosure = numberOfThreads;
 
 				await _feedback.Execute("Mine",
 				    () => MineAsync(miner, threadsClosure),
 				    () => $"{nameof(mineAddress)}: {mineAddress}, {nameof(numberOfThreads)}: {threadsClosure}");
-			    if (miner.Canceled)
+			    if (miner.Stopped)
 				    break;
 			    numberOfThreads = miner.Threads;// In case number of threads was canceled
 
@@ -106,7 +109,9 @@ namespace BlockChanPro.Core.Engine
 				    var minedBlock = await miner.GetBlock();
 				    if (minedBlock != null)
 				    {
-					    _feedback.NewBlockMined(minedBlock.Signed.Data.Index, DateTime.UtcNow.Ticks - minedBlock.Signed.Data.TimeStamp);
+					    await _network.BroadcastAsync(minedBlock);
+
+						_feedback.NewBlockMined(minedBlock.Signed.Data.Index, DateTime.UtcNow.Ticks - minedBlock.Signed.Data.TimeStamp);
 					    AddNewBlock(minedBlock);
 					    _currentMiner = null;
 				    } else
@@ -139,7 +144,15 @@ namespace BlockChanPro.Core.Engine
 
 		public Task AcceptBlockAsync(BlockBundle block)
 		{
-			_chainData.AddNewBlock(block.Block);
+			if (block?.Block != null)
+			{
+				_minerSync.Reset();
+				_chainData.AddNewBlock(block.Block);
+				//Cancel miner only after new block was accepted
+				_currentMiner?.Cancel();
+				_minerSync.Set();
+			}
+
 			return Task.CompletedTask;
 		}
 

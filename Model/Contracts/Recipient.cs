@@ -2,10 +2,6 @@ namespace BlockChanPro.Model.Contracts
 {
 	public class Recipient
 	{
-		public Recipient()
-		{
-			
-		}
 		public Recipient(Address address, long amount)
 		{
 			Address = address;
