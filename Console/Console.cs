@@ -76,7 +76,7 @@ namespace BlockChanPro.Console
 					Exit($"Invalid parameter {paramName}");
 				parsedParameters.Add(paramName);
 			}
-			_dependencies = new DependencyContainer(_host, Console);
+			_dependencies = new DependencyContainer(_host, new ConsoleF);
 			Startup.Initialize(
 				_dependencies.Network, 
 				_dependencies.Engine, 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using BlockChanPro.Core.Contracts;
@@ -54,18 +55,16 @@ namespace BlockChanPro.Core.Engine
 
 	    private async Task MineAsync(Address mineAddress, int? numberOfThreads)
 	    {
-		    await MineGenesisAsync(numberOfThreads);
+		    if (_chainData.GetLastBlock() == null)
+			    await MineGenesisAsync(numberOfThreads);
 
 		    do
 		    {
 			    _minerSync.Wait();
 				var lastBlock = _chainData.GetLastBlock();
-			    var miner = MinerFactory.Create(mineAddress, lastBlock, _chainData.SelectTransactionsToMine(), _feedback);
-			    var threadsClosure = numberOfThreads;
+			    var transactions = _chainData.SelectTransactionsToMine();
 
-				await _feedback.Execute("Mine",
-				    () => MineAsync(miner, threadsClosure),
-				    () => $"{nameof(mineAddress)}: {mineAddress}, {nameof(numberOfThreads)}: {threadsClosure}");
+				var miner = await MineAsync(mineAddress, numberOfThreads, lastBlock, transactions);
 			    if (miner.Stopped)
 				    break;
 			    numberOfThreads = miner.Threads;// In case number of threads was canceled
@@ -73,7 +72,18 @@ namespace BlockChanPro.Core.Engine
 		    } while (true);
 	    }
 
-	    public void MineStop()
+		private async Task<Miner> MineAsync(Address mineAddress, int? numberOfThreads, BlockHashed lastBlock, IEnumerable<TransactionSigned> transactions)
+		{
+			var miner = MinerFactory.Create(mineAddress, lastBlock, transactions, _feedback);
+			var threadsClosure = numberOfThreads;
+
+			await _feedback.Execute("Mine",
+				() => MineAsync(miner, threadsClosure),
+				() => $"{nameof(mineAddress)}: {mineAddress}, {nameof(numberOfThreads)}: {threadsClosure}");
+			return miner;
+		}
+
+		public void MineStop()
 	    {
 		    if (_currentMiner != null)
 		    {
@@ -82,28 +92,25 @@ namespace BlockChanPro.Core.Engine
 		    }
 	    }
 
-		public async Task MineGenesisAsync(int? numberOfThreads)
+		public async Task<BlockHashed> MineGenesisAsync(int? numberOfThreads)
 	    {
-		    if (_chainData.GetLastBlock() == null)
-		    {
-			    var genesisMiner = MinerFactory.Create(Genesis.GetBlockData(Cryptography, DateTime.UtcNow.Ticks), _feedback);
-			    await _feedback.Execute("MineGenesis",
-				    () => MineAsync(genesisMiner, numberOfThreads),
-				    () => $"{nameof(numberOfThreads)}: {numberOfThreads}");
-		    }
+			var genesisMiner = MinerFactory.Create(Genesis.GetBlockData(Cryptography, DateTime.UtcNow.Ticks), _feedback);
+			return await _feedback.Execute("MineGenesis",
+				() => MineAsync(genesisMiner, numberOfThreads),
+				() => $"{nameof(numberOfThreads)}: {numberOfThreads}");
 	    }
 
-		private async Task MineAsync(Miner miner, int? numberOfThreads)
+		private Task<BlockHashed> MineAsync(Miner miner, int? numberOfThreads)
 	    {
 		    miner.Start(numberOfThreads ?? Environment.ProcessorCount);
 		    _feedback.MineNewBlock(miner.Difficulty, miner.TargetBits);
 			_currentMiner = miner;
-			await AddMinedBlockAsync(miner);
+			return AddMinedBlockAsync(miner);
 	    }
 
-	    private async Task AddMinedBlockAsync(Miner miner)
+	    private async Task<BlockHashed> AddMinedBlockAsync(Miner miner)
 	    {
-		    await _feedback.Execute("AddMinedBlockAsync",
+		    return await _feedback.Execute("AddMinedBlockAsync",
 			    async () =>
 			    {
 				    var minedBlock = await miner.GetBlock();
@@ -113,9 +120,12 @@ namespace BlockChanPro.Core.Engine
 
 						_feedback.NewBlockMined(minedBlock.Signed.Data.Index, DateTime.UtcNow.Ticks - minedBlock.Signed.Data.TimeStamp);
 					    AddNewBlock(minedBlock);
-					    _currentMiner = null;
-				    } else
-					    _feedback.MinedBlockCanceled();
+
+						_currentMiner = null;
+					    return minedBlock;
+				    }
+				    _feedback.MinedBlockCanceled();
+				    return null;
 			    });
 	    }
 
