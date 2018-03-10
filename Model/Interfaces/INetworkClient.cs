@@ -8,5 +8,6 @@ namespace BlockChanPro.Model.Interfaces
 	    Uri Host { get; }
 
 	    Task CheckAccessAsync();
+	    Task DisposeAsync();
     }
 }

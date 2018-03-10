@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using BlockChanPro.Model.Contracts;
@@ -82,26 +83,62 @@ namespace BlockChanPro.Core.Engine.Network
 				//Send transaction only to other peers
 				//if (string.Compare(peer.Key, _peerUrl, StringComparison.InvariantCultureIgnoreCase) != 0)
 				{
-					await peer.Value.Client.BroadcastAsync(
-						new TransactionsBundle
-						{
-							Sender = _peerUrl,
-							Transactions = transactions
-						});
+					try
+					{
+						await peer.Value.Client.BroadcastAsync(
+							new TransactionsBundle
+							{
+								Sender = _peerUrl,
+								Transactions = transactions
+							});
+					}
+					catch (Exception e)
+					{
+						_feedback.Error(nameof(BroadcastAsync), $"peer: {peer.Value.Client.Host.AbsoluteUri}, message: {e.Message}");
+
+					}
 				}
 			}
 		}
 
-		public async Task BroadcastAsync(BlockHashed block)
+		public Task BroadcastAsync(BlockHashed block)
 		{
-			foreach (var peer in _peers)
+			foreach (var peer in _peers.Values)
+			{
+				BroadcastToPeer(block, peer);
+			}
+
+			return Task.CompletedTask;
+		}
+
+		//Fire and forget
+		//TODO: Queue client operations as currently rapid requests do not arrive in the order they have been send because of fire and forget
+		private void BroadcastToPeer(BlockHashed block, PeerConnection peer)
+		{
+			Debug.WriteLine($"Enqueue block {block.Signed.Data.Index}");
+			var queuedTask = peer.Client.BroadcastAsync(new BlockBundle(block, _peerUrl));
+			Debug.WriteLine($"Block {block.Signed.Data.Index} enqueued");
+			Fire(peer, queuedTask);
+		}
+
+		private async void Fire(PeerConnection peer, Task queuedTask)
+		{
+			try
 			{
 				//TODO: Rebroadcast when implement limited connected peers
 				//Send transaction only to other peers
 				//if (string.Compare(peer.Key, _peerUrl, StringComparison.InvariantCultureIgnoreCase) != 0)
 				{
-					await peer.Value.Client.BroadcastAsync(new BlockBundle(block, _peerUrl));
+					await queuedTask;
 				}
+			}
+			catch (Exception e)
+			{
+				_feedback.Error(nameof(BroadcastAsync), $"peer: {peer.Client.Host.AbsoluteUri}, message: {e.Message}");
+				//TODO: As client can be not accessible only temporary improve dead clients handling by access time stamp and clean up thread. 
+				//peer.Accessible = false;
+				await peer.DisconnectAsync();
+				_peers.TryRemove(peer.Client.Host.AbsoluteUri, out var _); //remove dead client
 			}
 		}
 	}

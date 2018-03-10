@@ -29,7 +29,8 @@ namespace BlockChanPro.Core.Engine
 
 		public void Stop()
 		{
-			Cancellation.Cancel();
+			if (!Task.IsCompleted)
+				Cancellation.Cancel();
 			try
 			{
 				Task.Wait();

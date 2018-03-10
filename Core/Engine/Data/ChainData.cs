@@ -83,23 +83,33 @@ namespace BlockChanPro.Core.Engine.Data
 		public void ValidateGenesisBlock(BlockHashed newBlock)
 		{
 			var expectedSignedGenesis = Genesis.GetBlockData(_cryptography, newBlock.Signed.Data.TimeStamp);
+			ValidateParent(0, Genesis.Hash, newBlock.Signed.Data);
+			ValidateSignature(expectedSignedGenesis.Stamp, newBlock.Signed);
 			ValidateBlockHash(expectedSignedGenesis, newBlock.HashTarget);
 		}
 
 		public void ValidateBlock(BlockHashed lastBlock, BlockHashed newBlock)
 		{
-			ValidateParent(lastBlock, newBlock);
+			ValidateParent(lastBlock.Signed.Data.Index + 1, lastBlock.HashTarget.Hash, newBlock.Signed.Data);
 			ValidateHashTarget(lastBlock, newBlock);
+			ValidateSignature(newBlock.Signed.Stamp, newBlock.Signed);
 			ValidateBlockHash(newBlock);
 			ValidateTransactions(newBlock.Signed.Data.Transactions);
 		}
 
-		private static void ValidateParent(BlockHashed lastBlock, BlockHashed newBlock)
+		private static void ValidateParent(int expectedBlockNumber, Hash expectedHash, BlockData newBlock)
 		{
-			if (newBlock.Signed.Data.Index != lastBlock.Signed.Data.Index + 1)
+			if (newBlock.Index != expectedBlockNumber)
 				throw new BlockchainException("Not sequential block"); //TODO: try re-sync
-			if (newBlock.Signed.Data.ParentHash != lastBlock.HashTarget.Hash)
+			if (newBlock.ParentHash != expectedHash)
 				throw new BlockchainException("Parent hash do not match"); //TODO: try re-sync
+		}
+
+		private void ValidateSignature(Address stamp, BlockSigned newBlockSigned)
+		{
+			// TODO: PubKey sign check. Temporary to validate genesis block
+			if (stamp.Value != newBlockSigned.Stamp.Value) 
+				throw new BlockchainException("Block has invalid signature");
 		}
 
 		public void ValidateHashTarget(BlockHashed lastBlock, BlockHashed newBlock)
