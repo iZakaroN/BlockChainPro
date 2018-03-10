@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using BlockChanPro.Core.Engine;
 using BlockChanPro.Model.Contracts;
-using BlockChanPro.Model.Serialization;
 
 namespace BlockChanPro.Console
 {
@@ -77,7 +76,7 @@ namespace BlockChanPro.Console
 
 		public void NewBlockAccepted(int blockHeight, long blockTime, Hash blockHash)
 		{
-			OutLine($"# New block accepted, H:{blockHeight}, DT:{TimeSpan.FromTicks(blockTime)}, BH:{blockHash.Value.ToHexString()}", ConsoleColor.DarkCyan);
+			OutLine($"# New block accepted, H:{blockHeight}, DT:{TimeSpan.FromTicks(blockTime)}, BH:{blockHash}", ConsoleColor.DarkCyan);
 		}
 
 		public void NewBlockMined(int blockHeight, long mineTime)
@@ -87,12 +86,17 @@ namespace BlockChanPro.Console
 
 		public void NewBlockRejected(int blockHeight, long blockTime, Hash blockHash, string message)
 		{
-			OutLine($"# New block rejected, H:{blockHeight}, DT:{TimeSpan.FromTicks(blockTime)}, BH:{blockHash.Value.ToHexString()}, => {message}", ConsoleColor.White, ConsoleColor.DarkRed);
+			OutLine($"# New block rejected, H:{blockHeight}, DT:{TimeSpan.FromTicks(blockTime)}, BH:{blockHash}, => {message}", ConsoleColor.White, ConsoleColor.DarkRed);
 		}
 
 		public void NewTransaction(TransactionSigned transaction)
 		{
-			OutLine($"# New transaction accepted, TH:{transaction.Sign.Value.ToHexString()}");
+			OutLine($"# New transaction accepted, TH:{transaction.Sign}");
+		}
+
+		public void StartBlockchainSync()
+		{
+			OutLine($"# Start block chain sync...");
 		}
 
 		public void HashProgress(ulong hashesCalculated)

@@ -40,11 +40,12 @@ namespace BlockChanPro.MSTESTS
 		}
 
 		[TestMethod]
-		public async Task GenerateBlock_Genesis_Validate()
+		public async Task GenerateBlock_Genesis_Validate_Healty()
 		{
 			var genesisBlock = await GenerateGenesisBlock();
 
-			_chainData.ValidateGenesisBlock(genesisBlock);
+			_chainData.ValidateGenesisBlock(genesisBlock, out var blockChainState);
+			Assert.AreEqual(BlockchainState.Healty, blockChainState);
 		}
 
 		[TestMethod]
@@ -54,16 +55,17 @@ namespace BlockChanPro.MSTESTS
 			var genesisBlock = await GenerateGenesisBlock();
 
 			var newGenesisSignedBlock = Genesis.GetBlockData(_cryptography, DateTime.UtcNow.Ticks);
-			_chainData.ValidateGenesisBlock(new BlockHashed(newGenesisSignedBlock, genesisBlock.HashTarget));
+			_chainData.ValidateGenesisBlock(new BlockHashed(newGenesisSignedBlock, genesisBlock.HashTarget), out var _);
 		}
 
 		[TestMethod]
-		public async Task GenerateBlock_1_Validate()
+		public async Task GenerateBlock_1_Validate_Heatly()
 		{
 			var genesisBlock = await GenerateGenesisBlock();
 			var block = await GenerateBlock(genesisBlock);
 
-			_chainData.ValidateBlock(genesisBlock, block);
+			_chainData.ValidateNewBlock(genesisBlock, block, out var blockChainState);
+			Assert.AreEqual(BlockchainState.Healty, blockChainState);
 		}
 
 		[TestMethod]
@@ -74,7 +76,7 @@ namespace BlockChanPro.MSTESTS
 			var block = await GenerateBlock(genesisBlock);
 			var newGenesisBlock = await GenerateGenesisBlock();
 
-			_chainData.ValidateBlock(newGenesisBlock, block);
+			_chainData.ValidateNewBlock(newGenesisBlock, block, out var _);
 		}
 
 		[TestMethod]
@@ -85,27 +87,41 @@ namespace BlockChanPro.MSTESTS
 			var nextBlock = await GenerateBlock(block);
 			var newBlock = await GenerateBlock(2);
 
-			_chainData.ValidateBlock(newBlock, nextBlock);
+			_chainData.ValidateNewBlock(newBlock, nextBlock, out var _);
 		}
 
 		[TestMethod]
-		public async Task GenerateBlock_10_Validate()
+		public async Task GenerateBlock_10_Validate_Healty()
 		{
 			var block = await GenerateBlock(10);
 			var nextBlock = await GenerateBlock(block);
 
-			_chainData.ValidateBlock(block, nextBlock);
+			_chainData.ValidateNewBlock(block, nextBlock, out var blockChainState);
+			Assert.AreEqual(BlockchainState.Healty, blockChainState);
 		}
+
+		[TestMethod]
+		public async Task ValidateBlock_Validate_NeedSync()
+		{
+			var block1 = await GenerateBlock(1);
+			var block2 = await GenerateBlock(block1);
+			var block3 = await GenerateBlock(block2);
+
+			_chainData.ValidateNewBlock(block1, block3, out var blockChainState);
+			Assert.AreEqual(BlockchainState.NeedSync, blockChainState);
+		}
+
+
 
 		[TestMethod]
 		[ExpectedException(typeof(BlockchainException))]
 		public async Task GenerateBlock_Invalidate_Height()
 		{
-			var block = await GenerateBlock(2);
-			var nextBlock = await GenerateBlock(block);
-			var newBlock = await GenerateBlock(1);
+			var block1 = await GenerateBlock(1);
+			var block2 = await GenerateBlock(block1);
+			var block3 = await GenerateBlock(block2);
 
-			_chainData.ValidateBlock(newBlock, nextBlock);
+			_chainData.ValidateNewBlock(block3, block2, out var _);
 		}
 
 		private async Task<BlockHashed> GenerateGenesisBlock()

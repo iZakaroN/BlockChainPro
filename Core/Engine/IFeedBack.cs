@@ -15,6 +15,7 @@ namespace BlockChanPro.Core.Engine
 		void NewBlockRejected(int blockHeight, long blockTime, Hash blockHash, string message);
 		void NewTransaction(TransactionSigned transaction);
 		void NewPeer(string peerUrl);
+		void StartBlockchainSync();
 
 		void HashProgress(ulong hashesCalculated);
 		void MinedBlockCanceled();

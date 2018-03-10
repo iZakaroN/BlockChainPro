@@ -14,7 +14,7 @@ namespace BlockChanPro.Core.Engine.Data
 
 		void RemovePendingTransactions(TransactionSigned[] transactions);
 
-		void AddNewBlock(BlockHashed newBlock);
+		BlockchainState AddNewBlock(BlockHashed newBlock);
 
 		bool AddPendingTransaction(TransactionSigned transaction);
 		IEnumerable<TransactionSigned> SelectTransactionsToMine();
@@ -54,61 +54,95 @@ namespace BlockChanPro.Core.Engine.Data
 				PendingTransactions.TryRemove(blockTransactions.Sign, out var _);
 		}
 
-		public void AddNewBlock(BlockHashed newBlock)
+		public BlockchainState AddNewBlock(BlockHashed newBlock)
 		{
 			var lastBlock = GetLastBlock();
 			var blockTime = newBlock.Signed.Data.TimeStamp - lastBlock?.Signed.Data.TimeStamp ?? 0;
 			try
 			{
-				if (lastBlock == null)
+				if (ValidateBlock(newBlock, lastBlock, out var blockchainState))
 				{
-					ValidateGenesisBlock(newBlock);
-				}
-				else
-				{
-					ValidateBlock(lastBlock, newBlock);
-					RemovePendingTransactions(newBlock.Signed.Data.Transactions);
+
+					Chain.Add(newBlock);
+					_feedback.NewBlockAccepted(newBlock.Signed.Data.Index, blockTime, newBlock.HashTarget.Hash);
 				}
 
-				Chain.Add(newBlock);
-				_feedback.NewBlockAccepted(newBlock.Signed.Data.Index, blockTime, newBlock.HashTarget.Hash);
+				return blockchainState;
 			}
 			catch (Exception e)
 			{
 				_feedback.NewBlockRejected(newBlock.Signed.Data.Index, blockTime, newBlock.HashTarget.Hash, e.Message);
 			}
 
+			return BlockchainState.Unknown;
 		}
 
-		public void ValidateGenesisBlock(BlockHashed newBlock)
+		private bool ValidateBlock(BlockHashed newBlock, BlockHashed lastBlock, out BlockchainState blockchainState)
+		{
+			bool result;
+			if (lastBlock == null)
+			{
+				result = ValidateGenesisBlock(newBlock, out blockchainState);
+			}
+			else
+			{
+				result = ValidateNewBlock(lastBlock, newBlock, out blockchainState);
+				if (result)
+					RemovePendingTransactions(newBlock.Signed.Data.Transactions);
+			}
+
+			return result;
+		}
+
+		public bool ValidateGenesisBlock(BlockHashed newBlock, out BlockchainState blockchainState)
 		{
 			var expectedSignedGenesis = Genesis.GetBlockData(_cryptography, newBlock.Signed.Data.TimeStamp);
-			ValidateParent(0, Genesis.Hash, newBlock.Signed.Data);
-			ValidateSignature(expectedSignedGenesis.Stamp, newBlock.Signed);
-			ValidateBlockHash(expectedSignedGenesis, newBlock.HashTarget);
+			var result = ValidateParent(0, Genesis.Hash, newBlock.Signed.Data,
+				out blockchainState);
+			if (result)
+			{
+				ValidateSignature(expectedSignedGenesis.Stamp, newBlock.Signed);
+				ValidateBlockHash(expectedSignedGenesis, newBlock.HashTarget);
+			}
+
+			return result;
 		}
 
-		public void ValidateBlock(BlockHashed lastBlock, BlockHashed newBlock)
+		public bool ValidateNewBlock(BlockHashed lastBlock, BlockHashed newBlock, out BlockchainState blockchainState)
 		{
-			ValidateParent(lastBlock.Signed.Data.Index + 1, lastBlock.HashTarget.Hash, newBlock.Signed.Data);
-			ValidateHashTarget(lastBlock, newBlock);
-			ValidateSignature(newBlock.Signed.Stamp, newBlock.Signed);
-			ValidateBlockHash(newBlock);
-			ValidateTransactions(newBlock.Signed.Data.Transactions);
+			var result = ValidateParent(lastBlock.Signed.Data.Index + 1, lastBlock.HashTarget.Hash, newBlock.Signed.Data,
+				out blockchainState);
+			if (result)
+			{
+				ValidateHashTarget(lastBlock, newBlock);
+				ValidateSignature(newBlock.Signed.Stamp, newBlock.Signed);
+				ValidateBlockHash(newBlock);
+				ValidateTransactions(newBlock.Signed.Data.Transactions);
+			}
+
+			return result;
 		}
 
-		private static void ValidateParent(int expectedBlockNumber, Hash expectedHash, BlockData newBlock)
+		private static bool ValidateParent(int expectedHeight, Hash expectedHash, BlockData newBlock, out BlockchainState blockchainState)
 		{
-			if (newBlock.Index != expectedBlockNumber)
-				throw new BlockchainException("Not sequential block"); //TODO: try re-sync
+			if (newBlock.Index > expectedHeight)
+			{
+				blockchainState = BlockchainState.NeedSync;
+				return false;
+			}
+
+			if (newBlock.Index != expectedHeight)
+				throw new BlockchainException($"New block Height {newBlock.Index} do not match the expected Height {expectedHeight}");
 			if (newBlock.ParentHash != expectedHash)
-				throw new BlockchainException("Parent hash do not match"); //TODO: try re-sync
+				throw new BlockchainException($"New block parent hash {newBlock.ParentHash} do not match the expected {expectedHash}");
+			blockchainState = BlockchainState.Healty;
+			return true;
 		}
 
 		private void ValidateSignature(Address stamp, BlockSigned newBlockSigned)
 		{
 			// TODO: PubKey sign check. Temporary to validate genesis block
-			if (stamp.Value != newBlockSigned.Stamp.Value) 
+			if (stamp.Value != newBlockSigned.Stamp.Value)
 				throw new BlockchainException("Block has invalid signature");
 		}
 

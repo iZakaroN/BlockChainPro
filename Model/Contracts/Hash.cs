@@ -92,5 +92,9 @@ namespace BlockChanPro.Model.Contracts
 			return !(a == b);
 		}
 
+		public override string ToString()
+		{
+			return $"[{Value.ToHexString()}]";
+		}
 	}
 }

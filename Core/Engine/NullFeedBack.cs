@@ -32,6 +32,10 @@ namespace BlockChanPro.Core.Engine
 		{
 		}
 
+		public void StartBlockchainSync()
+		{
+		}
+
 		public void HashProgress(ulong hashesCalculated)
 		{
 		}

@@ -134,7 +134,8 @@ namespace BlockChanPro.Core.Engine
 		    _feedback.Execute("AddNewBlock",
 			    () =>
 			    {
-				    _chainData.AddNewBlock(newBlock);
+					//TODO: Any chance the block to need sync here? Rely on AcceptBlockAsync for now
+					_chainData.AddNewBlock(newBlock);
 				},
 			    () => $"{nameof(newBlock)}: {newBlock.SerializeToJson()}");
 		}
@@ -157,13 +158,21 @@ namespace BlockChanPro.Core.Engine
 			if (block?.Block != null)
 			{
 				_minerSync.Reset();
-				_chainData.AddNewBlock(block.Block);
+				var blockchainState = _chainData.AddNewBlock(block.Block);
 				//Cancel miner only after new block was accepted
 				_currentMiner?.Cancel();
-				_minerSync.Set();
+				if (blockchainState == BlockchainState.NeedSync)
+					StartBlockchainSync(() => _minerSync.Set());
+				else
+					_minerSync.Set();
+				return Task.CompletedTask;
 			}
+			throw new BlockchainException("Cannot accept NULL block");
+		}
 
-			return Task.CompletedTask;
+		private void StartBlockchainSync(Action syncCompletedAction)
+		{
+			_feedback.StartBlockchainSync();
 		}
 
 		public Task<int> ConnectToPeerAsync(string url)
