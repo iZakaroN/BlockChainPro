@@ -12,14 +12,6 @@ namespace BlockChanPro.Console
 		private int _lastNumberOfThreads;
 		private Stopwatch _hashTime;
 		private ulong _hashesElapsed;
-		public void MineNewBlock(long difficulty, HashBits targetBits)
-		{
-			_hashTime = Stopwatch.StartNew();
-			_hashesElapsed = 0;
-			OutLine($"# Start mine new block. Difficulty = {difficulty}, TargetBits: {targetBits.Value:x16}");
-
-		}
-
 		//Use lock because of colors and cursor positions
 		private static readonly object OutLock = new object();
 
@@ -65,13 +57,60 @@ namespace BlockChanPro.Console
 			System.Console.Write("\r> ");
 		}
 
-		public void StartProcess(int threadsCount)
+		public void Start(string operation, string message)
+		{
+			//Out($"Start: {operation}, {message}");
+		}
+
+		public void Stop(string operation, string message)
+		{
+			//Out($"Stop: {operation}, {message}");
+		}
+
+		public void Error(string operation, string message)
+		{
+			OutLine($"# {operation} failed: {message}", ConsoleColor.Red);
+		}
+
+		public void MiningStart(int threadsCount)
 		{
 			if (_lastNumberOfThreads != threadsCount)
 			{
 				_lastNumberOfThreads = threadsCount;
 				OutLine($"# Mining threads changed to {threadsCount}");
 			}
+		}
+
+		public void MiningHashProgress(ulong hashesCalculated)
+		{
+			ulong? hashRate = null;
+			lock (_lock)
+			{
+				_hashesElapsed += hashesCalculated;
+				var hashTimeElapsed = _hashTime.Elapsed;
+				if (hashTimeElapsed > HashRateTime)
+				{
+					hashRate = (ulong)(_hashesElapsed * ((decimal)TimeSpan.FromSeconds(1).Ticks / hashTimeElapsed.Ticks));
+
+					_hashTime.Restart();
+					_hashesElapsed = 0;
+				}
+			}
+			if (hashRate.HasValue)
+				Out($"# Hash rate {hashRate}, Threads {_lastNumberOfThreads}");
+		}
+
+		public void MineNewBlock(long difficulty, HashBits targetBits)
+		{
+			_hashTime = Stopwatch.StartNew();
+			_hashesElapsed = 0;
+			OutLine($"# Start mine new block. Difficulty = {difficulty}, TargetBits: {targetBits.Value:x16}");
+
+		}
+
+		public void MineCanceled()
+		{
+			OutLine("# Block mining was canceled");
 		}
 
 		public void NewBlockAccepted(int blockHeight, long blockTime, Hash blockHash)
@@ -94,53 +133,49 @@ namespace BlockChanPro.Console
 			OutLine($"# New transaction accepted, TH:{transaction.Sign}");
 		}
 
-		public void StartBlockchainSync()
+		public void SyncChainStart()
 		{
-			OutLine($"# Start block chain sync...");
+			OutLine("# Sync: Start block chain synchronization");
 		}
 
-		public void HashProgress(ulong hashesCalculated)
+		public void SyncChainFinished()
 		{
-			ulong? hashRate = null;
-			lock (_lock)
-			{
-				_hashesElapsed += hashesCalculated;
-				var hashTimeElapsed = _hashTime.Elapsed;
-				if (hashTimeElapsed > HashRateTime)
-				{
-					hashRate = (ulong)(_hashesElapsed * ((decimal)TimeSpan.FromSeconds(1).Ticks / hashTimeElapsed.Ticks));
+			OutLine("# Sync: Block chain synchronization finished");
+		}
 
-					_hashTime.Restart();
-					_hashesElapsed = 0;
-				}
-			}
-			if (hashRate.HasValue)
-				Out($"# Hash rate {hashRate}, Threads {_lastNumberOfThreads}");
+		public void SyncChainAlreadyInSync()
+		{
+			OutLine("# Sync: Block chain already synchronizing");
+		}
+
+		public void SyncChainProcessing(int syncStartBlockIndex, int latestBlockIndex, int peerCount)
+		{
+			OutLine($"# Sync: Found {peerCount} with valid block chain with height {latestBlockIndex}. Syncing from block {syncStartBlockIndex}");
+		}
+
+		public void SyncChainRetrieveBlocks(int syncBlockIndex, int syncBlockPageSize, string hostAbsoluteUri)
+		{
+			OutLine($"# Sync: Retrieve blocks [{syncBlockIndex}..{syncBlockIndex + syncBlockPageSize - 1}] from {hostAbsoluteUri}");
+		}
+
+		public void SyncChainPendingBlocks(int startIndex, int resultLength)
+		{
+			OutLine($"# Sync: Not sequential blocks found [{startIndex}..{startIndex + resultLength - 1}]. Queue as pending blocks");
+		}
+
+		public void SyncChainInvalidBlocks(int startIndex, int syncBlockPageSize)
+		{
+			OutLine($"# Sync: Found not invalid blocks [{startIndex}..{startIndex + syncBlockPageSize - 1}]");
+		}
+
+		public void SyncChainProcessPendingBlocks(int startIndex, int syncBlockPageSize)
+		{
+			OutLine($"# Sync: Process pending blocks [{startIndex}..{startIndex + syncBlockPageSize - 1}]");
 		}
 
 		public void NewPeer(string peerUrl)
 		{
 			OutLine($"# New peer discovered '{peerUrl}'");
-		}
-
-		public void MinedBlockCanceled()
-		{
-			OutLine("# Block mining was canceled");
-		}
-
-		public void Start(string operation, string message)
-		{
-			//Out($"Start: {operation}, {message}");
-		}
-
-		public void Stop(string operation, string message)
-		{
-			//Out($"Stop: {operation}, {message}");
-		}
-
-		public void Error(string operation, string message)
-		{
-			OutLine($"# {operation} failed: {message}", ConsoleColor.Red);
 		}
 	}
 }

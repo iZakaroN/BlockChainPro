@@ -8,7 +8,7 @@ namespace BlockChanPro.Core.Engine
 		{
 		}
 
-		public void StartProcess(int threadsCount)
+		public void MiningStart(int threadsCount)
 		{
 		}
 
@@ -32,15 +32,43 @@ namespace BlockChanPro.Core.Engine
 		{
 		}
 
-		public void StartBlockchainSync()
+		public void SyncChainStart()
 		{
 		}
 
-		public void HashProgress(ulong hashesCalculated)
+		public void SyncChainFinished()
 		{
 		}
 
-		public void MinedBlockCanceled()
+		public void SyncChainAlreadyInSync()
+		{
+		}
+
+		public void SyncChainProcessing(int syncStartBlockIndex, int latestBlockIndex, int peerCount)
+		{
+		}
+
+		public void SyncChainRetrieveBlocks(int syncBlockIndex, int syncBlockPageSize, string hostAbsoluteUri)
+		{
+		}
+
+		public void SyncChainPendingBlocks(int startIndex, int resultLength)
+		{
+		}
+
+		public void SyncChainInvalidBlocks(int startIndex, int syncBlockPageSize)
+		{
+		}
+
+		public void SyncChainProcessPendingBlocks(int startIndex, int syncBlockPageSize)
+		{
+		}
+
+		public void MiningHashProgress(ulong hashesCalculated)
+		{
+		}
+
+		public void MineCanceled()
 		{
 		}
 

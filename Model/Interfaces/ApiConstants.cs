@@ -4,8 +4,9 @@
 	{
 		public const string Version = "0.0";
 		public const string Root = "api";
-		public const string Connections = Root + "/connections";
-		public const string Transactions = Root + "/transactions";
-		public const string Blocks = Root + "/blocks";
+		public const string Connections = Root + "/connection";
+		public const string Transactions = Root + "/transaction";
+		public const string Block = Root + "/block";
+		public const string BlockIdentity = Root + "/block/identity";
 	}
 }

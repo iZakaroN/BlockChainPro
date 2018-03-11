@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using BlockChanPro.Core.Engine.Data;
 using BlockChanPro.Model.Contracts;
 
 namespace BlockChanPro.Core.Engine.Network
@@ -25,5 +26,7 @@ namespace BlockChanPro.Core.Engine.Network
 		Task BroadcastAsync(TransactionSigned[] transactions);
 
 		Task BroadcastAsync(BlockHashed block);
+
+		Task BlockchainSync(IChainData chainData);
 	}
 }

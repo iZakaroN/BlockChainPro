@@ -79,7 +79,8 @@ namespace BlockChanPro.Console
 			_dependencies = new DependencyContainer(_host, Console);
 			Startup.Initialize(
 				_dependencies.Network, 
-				_dependencies.Engine, 
+				_dependencies.Engine,
+				_dependencies.ChainData,
 				(s,l) => l > LogLevel.Error || _webHostLog, 
 				appLifetime => _applicationLifetime = appLifetime);
 
@@ -310,11 +311,19 @@ namespace BlockChanPro.Console
 		private static void TurnLogOn(Queue<string> obj)
 		{
 			_webHostLog = true;
+			OutLogState();
+		}
+
+		private static void OutLogState()
+		{
+			var s = _webHostLog ? "On" : "Off";
+			CommandFinished($"Log is turned {s}");
 		}
 
 		private static void TurnLogOff(Queue<string> obj)
 		{
 			_webHostLog = false;
+			OutLogState();
 		}
 
 

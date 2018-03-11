@@ -7,21 +7,29 @@ namespace BlockChanPro.Core.Engine
 {
 	public interface IFeedback
 	{
+		void Start(string operation, string message);
+		void Stop(string operation, string message);
+		void Error(string operation, string message);
+
+		void MiningStart(int threadsCount);
+		void MiningHashProgress(ulong hashesCalculated);
 		void MineNewBlock(long difficulty, HashBits targetBits);
-		void StartProcess(int threadsCount);
+		void MineCanceled();
 
 		void NewBlockAccepted(int blockHeight, long blockTime, Hash blockHash);
 		void NewBlockMined(int blockHeight, long mineTime);
 		void NewBlockRejected(int blockHeight, long blockTime, Hash blockHash, string message);
 		void NewTransaction(TransactionSigned transaction);
 		void NewPeer(string peerUrl);
-		void StartBlockchainSync();
 
-		void HashProgress(ulong hashesCalculated);
-		void MinedBlockCanceled();
-		void Start(string operation, string message);
-		void Stop(string operation, string message);
-		void Error(string operation, string message);
+		void SyncChainStart();
+		void SyncChainFinished();
+		void SyncChainAlreadyInSync();
+		void SyncChainProcessing(int syncStartBlockIndex, int latestBlockIndex, int peerCount);
+		void SyncChainRetrieveBlocks(int syncBlockIndex, int syncBlockPageSize, string hostAbsoluteUri);
+		void SyncChainPendingBlocks(int startIndex, int resultLength);
+		void SyncChainInvalidBlocks(int startIndex, int syncBlockPageSize);
+		void SyncChainProcessPendingBlocks(int startIndex, int syncBlockPageSize);
 	}
 
 	public static class FeedbackExtensions

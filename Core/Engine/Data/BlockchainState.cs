@@ -2,8 +2,8 @@
 {
     public enum BlockchainState
     {
-	    Unknown,
 		Healty,
-		NeedSync
+		NeedSync,
+	    ValidationError,
     }
 }

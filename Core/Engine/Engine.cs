@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BlockChanPro.Core.Contracts;
@@ -13,7 +14,7 @@ namespace BlockChanPro.Core.Engine
 	//TODO: Separate miner in different interface and probably class (at least as preparation for pooled mining)
 	public class Engine : IEngine
 	{
-	    private readonly IFeedback _feedback;
+		private readonly IFeedback _feedback;
 		private readonly IP2PNetwork _network;
 		private readonly IChainData _chainData;
 		private readonly ManualResetEventSlim _minerSync = new ManualResetEventSlim(true);
@@ -22,19 +23,19 @@ namespace BlockChanPro.Core.Engine
 		private static readonly Cryptography Cryptography = new Cryptography();
 		private static readonly MinerFactory MinerFactory = new MinerFactory(Cryptography);
 
-	    private Miner _currentMiner;
-	    // ReSharper disable once NotAccessedField.Local //Just in case
-	    private Task _minerTask;
+		private Miner _currentMiner;
+		// ReSharper disable once NotAccessedField.Local //Just in case
+		private Task _minerTask;
 
 		public Engine(
-			IFeedback feedback, 
-			IP2PNetwork network, 
+			IFeedback feedback,
+			IP2PNetwork network,
 			IChainData chainData)
-	    {
-		    _feedback = feedback;
-		    _network = network;
-		    _chainData = chainData;
-	    }
+		{
+			_feedback = feedback;
+			_network = network;
+			_chainData = chainData;
+		}
 
 		/// <summary>
 		/// Start mining or continue with different arguments
@@ -42,35 +43,35 @@ namespace BlockChanPro.Core.Engine
 		/// <param name="mineAddress"></param>
 		/// <param name="numberOfThreads"></param>
 		/// <returns></returns>
-	    public void Mine(Address mineAddress, int? numberOfThreads)
+		public void Mine(Address mineAddress, int? numberOfThreads)
 		{
 			if (_currentMiner != null && _currentMiner.Address.Value != mineAddress.Value)
 				MineStop();
 
 			if (_currentMiner == null)
-			    _minerTask = MineAsync(mineAddress, numberOfThreads);
-		    else
+				_minerTask = MineAsync(mineAddress, numberOfThreads);
+			else
 				_currentMiner.Start(numberOfThreads ?? Environment.ProcessorCount);
 		}
 
-	    private async Task MineAsync(Address mineAddress, int? numberOfThreads)
-	    {
-		    if (_chainData.GetLastBlock() == null)
-			    await MineGenesisAsync(numberOfThreads);
+		private async Task MineAsync(Address mineAddress, int? numberOfThreads)
+		{
+			if (_chainData.GetLastBlock() == null)
+				await MineGenesisAsync(numberOfThreads);
 
-		    do
-		    {
-			    _minerSync.Wait();
+			do
+			{
+				_minerSync.Wait();
 				var lastBlock = _chainData.GetLastBlock();
-			    var transactions = _chainData.SelectTransactionsToMine();
+				var transactions = _chainData.SelectTransactionsToMine();
 
 				var miner = await MineAsync(mineAddress, numberOfThreads, lastBlock, transactions);
-			    if (miner.Stopped)
-				    break;
-			    numberOfThreads = miner.Threads;// In case number of threads was canceled
+				if (miner.Stopped)
+					break;
+				numberOfThreads = miner.Threads;// In case number of threads was canceled
 
-		    } while (true);
-	    }
+			} while (true);
+		}
 
 		public async Task<Miner> MineAsync(Address mineAddress, int? numberOfThreads, BlockHashed lastBlock, IEnumerable<TransactionSigned> transactions)
 		{
@@ -84,66 +85,66 @@ namespace BlockChanPro.Core.Engine
 		}
 
 		public void MineStop()
-	    {
-		    if (_currentMiner != null)
-		    {
-			    _currentMiner.Stop();
-			    _currentMiner = null;
-		    }
-	    }
+		{
+			if (_currentMiner != null)
+			{
+				_currentMiner.Stop();
+				_currentMiner = null;
+			}
+		}
 
 		public async Task<BlockHashed> MineGenesisAsync(int? numberOfThreads)
-	    {
+		{
 			var genesisMiner = MinerFactory.Create(Genesis.GetBlockData(Cryptography, DateTime.UtcNow.Ticks), _feedback);
 			return await _feedback.Execute("MineGenesis",
 				() => MineAsync(genesisMiner, numberOfThreads),
 				() => $"{nameof(numberOfThreads)}: {numberOfThreads}");
-	    }
+		}
 
 		private Task<BlockHashed> MineAsync(Miner miner, int? numberOfThreads)
-	    {
-		    miner.Start(numberOfThreads ?? Environment.ProcessorCount);
-		    _feedback.MineNewBlock(miner.Difficulty, miner.TargetBits);
+		{
+			miner.Start(numberOfThreads ?? Environment.ProcessorCount);
+			_feedback.MineNewBlock(miner.Difficulty, miner.TargetBits);
 			_currentMiner = miner;
 			return AddMinedBlockAsync(miner);
-	    }
+		}
 
-	    private async Task<BlockHashed> AddMinedBlockAsync(Miner miner)
-	    {
-		    return await _feedback.Execute("AddMinedBlockAsync",
-			    async () =>
-			    {
-				    var minedBlock = await miner.GetBlock();
-				    if (minedBlock != null)
-				    {
-					    await _network.BroadcastAsync(minedBlock);
+		private async Task<BlockHashed> AddMinedBlockAsync(Miner miner)
+		{
+			return await _feedback.Execute("AddMinedBlockAsync",
+				async () =>
+				{
+					var minedBlock = await miner.GetBlock();
+					if (minedBlock != null)
+					{
+						await _network.BroadcastAsync(minedBlock);
 
 						_feedback.NewBlockMined(minedBlock.Signed.Data.Index, DateTime.UtcNow.Ticks - minedBlock.Signed.Data.TimeStamp);
-					    AddNewBlock(minedBlock);
+						AddNewBlock(minedBlock);
 
 						_currentMiner = null;
-					    return minedBlock;
-				    }
-				    _feedback.MinedBlockCanceled();
-				    return null;
-			    });
-	    }
+						return minedBlock;
+					}
+					_feedback.MineCanceled();
+					return null;
+				});
+		}
 
-	    private void AddNewBlock(BlockHashed newBlock)
-	    {
-		    _feedback.Execute("AddNewBlock",
-			    () =>
-			    {
+		private void AddNewBlock(BlockHashed newBlock)
+		{
+			_feedback.Execute("AddNewBlock",
+				() =>
+				{
 					//TODO: Any chance the block to need sync here? Rely on AcceptBlockAsync for now
 					_chainData.AddNewBlock(newBlock);
 				},
-			    () => $"{nameof(newBlock)}: {newBlock.SerializeToJson()}");
+				() => $"{nameof(newBlock)}: {newBlock.SerializeToJson()}");
 		}
 
 		public void SendTransaction(TransactionSigned result)
 		{
 			if (_chainData.AddPendingTransaction(result))
-				_network.BroadcastAsync(new [] { result });
+				_network.BroadcastAsync(new[] { result });
 		}
 
 		public Task AcceptTransactionsAsync(TransactionsBundle transactions)
@@ -170,9 +171,25 @@ namespace BlockChanPro.Core.Engine
 			throw new BlockchainException("Cannot accept NULL block");
 		}
 
+		private Task _blockchainSync;
 		private void StartBlockchainSync(Action syncCompletedAction)
 		{
-			_feedback.StartBlockchainSync();
+			if (_blockchainSync == null)
+				_blockchainSync = BlockchainSync(syncCompletedAction);
+		}
+
+		private async Task BlockchainSync(Action syncCompletedAction)
+		{
+			try
+			{
+				await _network.BlockchainSync(_chainData);
+				syncCompletedAction();
+			}
+			catch (Exception e)
+			{
+				_feedback.Error(nameof(BlockchainSync), e.Message);
+			}
+			_blockchainSync = null;
 		}
 
 		public Task<int> ConnectToPeerAsync(string url)

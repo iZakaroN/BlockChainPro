@@ -145,7 +145,7 @@ namespace BlockChanPro.Core.Engine
 					}
 					finally
 					{
-						_feedback.HashProgress(itterations);
+						_feedback.MiningHashProgress(itterations);
 					}
 				},
 				() => $"{nameof(initialNounce)}: {initialNounce}, {nameof(maxItterations)}: {maxItterations}");
@@ -192,7 +192,7 @@ namespace BlockChanPro.Core.Engine
 			{
 				// ReSharper disable once CoVariantArrayConversion //Not modified
 				Task[] tasks = _tasks.Select(mt => mt.Task).ToArray();
-				_feedback.StartProcess(tasks.Length);
+				_feedback.MiningStart(tasks.Length);
 				try
 				{
 					Task.WaitAny(tasks, _taskManagerWait.Token);

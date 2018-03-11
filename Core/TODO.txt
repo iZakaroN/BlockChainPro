@@ -1,33 +1,57 @@
-﻿- Use optimized binary serialization
+﻿- Use optimized binary serialization - partially done
 - Fork replay protection
-	- add blockchain Id
+	- add block schain Id
 - Transactions:
+	- Hash placeholder - done
 	- Chaining
 	- Merkel tree hashing
-	- Validation
-- Blocks validation
+	- Validation - placeholder
 	- Signing
-	- Validate accepted blocks
+- Blocks validation
+	- Validate accepted blocks - done
 - P2P sync
+	- nodes	- done
 	- Limit number of connections
-	- Optimize connections (by best response while ensure that the entire network is connected - always have at least one distant node)
-	- broadcast sync - ensure all pears have the same blocks 
+	- Optimize node connections 
+		- Disconnect dead nodes - done
+		- by best response while ensure that the entire network is connected - always have at least one distant node)
+	- blocks 
+		- broadcast - done
+		- sync
+	- pending transactions
+		- broadcast - done
+		- sync
 
-- Abstract hash size and algo (use it for different performance/security scenarios)
-	- hash size = baseHashSize*2^x (base 128 = 0 , current 256 hash = 1, future proof hash 512 = 2, 1024 = 3)
+	- Multi threaded block sync
+	- Find largest valid chain
+
+- Abstract (use it for different performance/security scenarios) - partially done
+	- Hash size = baseHashSize*2^x (base 128 = 0 , current 256 hash = 1, future proof hash 512 = 2, 1024 = 3)
 	- Algo
-	- target bits
+	- Target bits
 - Tests
+	- Hashing - done
+	- Block validation - done
 	- Threading sync test
 		- Miner
 		- Block chain sync
 		- Cross checks
-- Make it SOLID
+- Make it SOLID - partially
 	- Define interfaces
 	- Single responsibility
 	- DI
-	- Implement feedback as decorator
-- Make it async
+	- Implement feedback as decorator - done
+- Make it async	- partially done
 - Console command engine ()
+	- basic - done
+	- Engine feedback lock - done
+	- Asp log filtering - done
+- Difficulty adjustment
+	- On every block - done
+	- Limit block adjustment for every block - done
+	- Last X blocks
 - Mining 
-	- Separate Miner to serer and client for pool mining
+	- Multi threaded mining - done
+	- Separate Miner to server and client for pool mining
+- Web
+	- Exception to HTTP response mapping

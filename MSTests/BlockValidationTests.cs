@@ -49,7 +49,7 @@ namespace BlockChanPro.MSTESTS
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(BlockchainException))]
+		[ExpectedException(typeof(BlockchainValidationException))]
 		public async Task GenerateBlock_GenesisBlock_Invalidate_Hash()
 		{
 			var genesisBlock = await GenerateGenesisBlock();
@@ -69,7 +69,7 @@ namespace BlockChanPro.MSTESTS
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(BlockchainException))]
+		[ExpectedException(typeof(BlockchainValidationException))]
 		public async Task GenerateBlock_1_Invalidate_Parent()
 		{
 			var genesisBlock = await GenerateGenesisBlock();
@@ -80,7 +80,7 @@ namespace BlockChanPro.MSTESTS
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(BlockchainException))]
+		[ExpectedException(typeof(BlockchainValidationException))]
 		public async Task GenerateBlock_2_Invalidate_Parent()
 		{
 			var block = await GenerateBlock(2);
@@ -114,7 +114,7 @@ namespace BlockChanPro.MSTESTS
 
 
 		[TestMethod]
-		[ExpectedException(typeof(BlockchainException))]
+		[ExpectedException(typeof(BlockchainValidationException))]
 		public async Task GenerateBlock_Invalidate_Height()
 		{
 			var block1 = await GenerateBlock(1);

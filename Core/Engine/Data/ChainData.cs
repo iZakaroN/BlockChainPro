@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using BlockChanPro.Core.Contracts;
 using BlockChanPro.Model.Contracts;
 using BlockChanPro.Model.Serialization;
@@ -17,9 +18,15 @@ namespace BlockChanPro.Core.Engine.Data
 		BlockchainState AddNewBlock(BlockHashed newBlock);
 
 		bool AddPendingTransaction(TransactionSigned transaction);
+
 		IEnumerable<TransactionSigned> SelectTransactionsToMine();
 
 		TransactionsInfo CalulateTransactionsInfo();
+
+		Task<BlockHashed[]> GetBlocksAsync(int startBlockIndex, int blocksCount);
+		Task<BlockIdentity[]> GetBlockIdentitiesAsync(int startBlockIndex, int i);
+		Task<BlockHashed[]> GetBlocksAsync(int[] indexes);
+		Task<BlockIdentity[]> GetBlockIdentitiesAsync(int[] indexes);
 	}
 
 	public class ChainData : IChainData
@@ -69,12 +76,12 @@ namespace BlockChanPro.Core.Engine.Data
 
 				return blockchainState;
 			}
-			catch (Exception e)
+			catch (BlockchainValidationException e)
 			{
 				_feedback.NewBlockRejected(newBlock.Signed.Data.Index, blockTime, newBlock.HashTarget.Hash, e.Message);
 			}
 
-			return BlockchainState.Unknown;
+			return BlockchainState.ValidationError;
 		}
 
 		private bool ValidateBlock(BlockHashed newBlock, BlockHashed lastBlock, out BlockchainState blockchainState)
@@ -132,9 +139,9 @@ namespace BlockChanPro.Core.Engine.Data
 			}
 
 			if (newBlock.Index != expectedHeight)
-				throw new BlockchainException($"New block Height {newBlock.Index} do not match the expected Height {expectedHeight}");
+				throw new BlockchainValidationException($"New block Height {newBlock.Index} do not match the expected Height {expectedHeight}");
 			if (newBlock.ParentHash != expectedHash)
-				throw new BlockchainException($"New block parent hash {newBlock.ParentHash} do not match the expected {expectedHash}");
+				throw new BlockchainValidationException($"New block parent hash {newBlock.ParentHash} do not match the expected {expectedHash}");
 			blockchainState = BlockchainState.Healty;
 			return true;
 		}
@@ -143,17 +150,17 @@ namespace BlockChanPro.Core.Engine.Data
 		{
 			// TODO: PubKey sign check. Temporary to validate genesis block
 			if (stamp.Value != newBlockSigned.Stamp.Value)
-				throw new BlockchainException("Block has invalid signature");
+				throw new BlockchainValidationException("Block has invalid signature");
 		}
 
 		public void ValidateHashTarget(BlockHashed lastBlock, BlockHashed newBlock)
 		{
 			var targetHashBits = Rules.CalculateTargetHash(lastBlock, newBlock.Signed.Data);
 			if (newBlock.Signed.HashTargetBits.Value != targetHashBits.Value)
-				throw new BlockchainException("Block target hash bits are not valid");
+				throw new BlockchainValidationException("Block target hash bits are not valid");
 			var targetHash = newBlock.Signed.HashTargetBits.ToHash();
 			if (newBlock.HashTarget.Hash.Compare(targetHash) >= 0)
-				throw new BlockchainException("Block hash is not below a necessary target");
+				throw new BlockchainValidationException("Block hash is not below a necessary target");
 		}
 
 		public void ValidateBlockHash(BlockHashed newBlock)
@@ -167,7 +174,7 @@ namespace BlockChanPro.Core.Engine.Data
 			var calulatedSignedHashBytes = calulatedSignedHash.ToBinary();
 			var calulatedHash = _cryptography.CalculateHash(calulatedSignedHashBytes, target.Nounce);
 			if (calulatedHash != target.Hash)
-				throw new BlockchainException("Block has invalid hash");
+				throw new BlockchainValidationException("Block has invalid hash");
 		}
 
 		public void ValidateTransactions(TransactionSigned[] transactions)
@@ -181,7 +188,7 @@ namespace BlockChanPro.Core.Engine.Data
 		{
 			//TODO: Check signature by public key
 			if (transaction.Sign == null)
-				throw new BlockchainException("Transaction is not valid");
+				throw new BlockchainValidationException("Transaction is not valid");
 		}
 
 		public bool AddPendingTransaction(TransactionSigned transaction)
@@ -209,5 +216,53 @@ namespace BlockChanPro.Core.Engine.Data
 			);
 		}
 
+		public Task<BlockHashed[]> GetBlocksAsync(int startBlockIndex, int blocksCount)
+		{
+			if (Chain.Count > 0)
+			{
+				if (startBlockIndex == -1)
+					startBlockIndex = Chain.Count - 1;
+				blocksCount = Math.Min(blocksCount, Chain.Count - startBlockIndex);
+				if (blocksCount > 0)
+					return Task.FromResult(
+						Chain.GetRange(startBlockIndex, blocksCount).ToArray());
+			}
+			return Task.FromResult(new BlockHashed[] { });
+		}
+
+		public Task<BlockHashed[]> GetBlocksAsync(int[] indexes)
+		{
+			return Task.FromResult(
+				indexes
+					.Where(i => i < Chain.Count)
+					.Select(i => Chain[i])
+					.ToArray());
+		}
+
+		public Task<BlockIdentity[]> GetBlockIdentitiesAsync(int startBlockIndex, int blocksCount)
+		{
+			if (Chain.Count > 0)
+			{
+				if (startBlockIndex == -1)
+					startBlockIndex = Chain.Count - 1;
+				blocksCount = Math.Min(blocksCount, Chain.Count - startBlockIndex);
+				if (blocksCount > 0)
+					return Task.FromResult(
+						Chain
+							.GetRange(startBlockIndex, blocksCount)
+							.Select(b => new BlockIdentity(b.Signed.Data.Index, b.HashTarget.Hash))
+							.ToArray());
+			}
+			return Task.FromResult(new BlockIdentity[] { });
+		}
+
+		public Task<BlockIdentity[]> GetBlockIdentitiesAsync(int[] indexes)
+		{
+			return Task.FromResult(
+				indexes
+					.Where(i => i < Chain.Count)
+					.Select(i => new BlockIdentity(Chain[i].Signed.Data.Index, Chain[i].HashTarget.Hash))
+					.ToArray());
+		}
 	}
 }

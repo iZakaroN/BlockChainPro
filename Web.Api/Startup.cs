@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using BlockChanPro.Core.Engine;
+using BlockChanPro.Core.Engine.Data;
 using BlockChanPro.Core.Engine.Network;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,7 +15,10 @@ namespace BlockChanPro.Web.Api
     {
 	    private static IP2PNetwork _network;
 	    private static IEngine _engine;
-	    private static Func<string, LogLevel, bool> _consoleLogFilter;
+	    private static IChainData _chainData;
+
+
+		private static Func<string, LogLevel, bool> _consoleLogFilter;
 	    private static Action<IApplicationLifetime> _applicationLifetimeCreated;
 
 		public Startup(IConfiguration configuration)
@@ -28,12 +32,14 @@ namespace BlockChanPro.Web.Api
 		public static void Initialize(
 		    IP2PNetwork network, 
 		    IEngine engine, 
+		    IChainData chainData, 
 		    Func<string, LogLevel, bool> consoleLogFilter,
 		    Action<IApplicationLifetime> applicationLifetimeCreated)
 	    {
 		    _network = network;
 		    _engine = engine;
-		    _consoleLogFilter = consoleLogFilter;
+		    _chainData = chainData;
+			_consoleLogFilter = consoleLogFilter;
 		    _applicationLifetimeCreated = applicationLifetimeCreated;
 	    }
 
@@ -42,7 +48,8 @@ namespace BlockChanPro.Web.Api
         {
 	        services.Add(new ServiceDescriptor(typeof(IP2PNetwork), _network));
 	        services.Add(new ServiceDescriptor(typeof(IEngine), _engine));
-	        
+	        services.Add(new ServiceDescriptor(typeof(IChainData), _chainData));
+
 			services.AddMvc();
         }
 

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -121,10 +123,65 @@ namespace Web.Shared
 		public Task BroadcastAsync(BlockBundle block) =>
 			QueueBroadcast(() => BroadCastExecuteAsync(block));
 
+		public async Task<BlockHashed[]> GetBlocksAsync(int? start = null, int? count = null)
+		{
+			var formattedParameters = FromatParameters(start, count);
+			var response = await _httpClient.GetAsync($"{ApiConstants.Block}{formattedParameters}");
+			response.EnsureSuccessStatusCode();
+			return await response.Content.ReadAsJsonAsync<BlockHashed[]>();
+		}
+
+		public async Task<BlockHashed[]> GetBlocksAsync(int[] indexes)
+		{
+			var formattedIndexes = indexes.Aggregate("", (s, v) => s == "" ? "" : "," + $"i={v}");
+			var response = await _httpClient.GetAsync($"{ApiConstants.Block}?{formattedIndexes}");
+			response.EnsureSuccessStatusCode();
+			return await response.Content.ReadAsJsonAsync<BlockHashed[]>();
+		}
+
+		public async Task<BlockIdentity[]> GetBlockIdentitiesAsync(int? start = null, int? count = null)
+		{
+			var formattedParameters = FromatParameters(start, count);
+			var response = await _httpClient.GetAsync($"{ApiConstants.BlockIdentity}{formattedParameters}");
+			response.EnsureSuccessStatusCode();
+			return await response.Content.ReadAsJsonAsync<BlockIdentity[]>();
+		}
+
+		public async Task<BlockIdentity[]> GetBlockIdentitiesAsync(int[] indexes)
+		{
+			var formattedParameters = FormatParameters(indexes);
+			var response = await _httpClient.GetAsync($"{ApiConstants.BlockIdentity}{formattedParameters}");
+			response.EnsureSuccessStatusCode();
+			return await response.Content.ReadAsJsonAsync<BlockIdentity[]>();
+		}
+
+		private static string FormatParameters(IEnumerable<int> indexes)
+		{
+			return FormattedParameters(indexes.Select(v => $"i={v}"));
+		}
+
+		private static string FromatParameters(int? start, int? count)
+		{
+			var pl = new List<string>
+			{
+				start.HasValue ? $"s={start}" : null,
+				count.HasValue ? $"c={count}" : null
+			};
+			return FormattedParameters(pl);
+		}
+
+		private static string FormattedParameters(IEnumerable<string> parameters)
+		{
+			var formattedParameters = parameters.Aggregate("", (s, v) => s + (s == "" ? "" : "&") + v);
+			if (!string.IsNullOrEmpty(formattedParameters))
+				formattedParameters = $"?{formattedParameters}";
+			return formattedParameters;
+		}
+
 		private async Task BroadCastExecuteAsync(BlockBundle block)
 		{
 			Debug.WriteLine($"Sending block {block.Block.Signed.Data.Index}");
-			var response = await _httpClient.PostAsJsonAsync(ApiConstants.Blocks, block);
+			var response = await _httpClient.PostAsJsonAsync(ApiConstants.Block, block);
 			Debug.WriteLine($"Block {block.Block.Signed.Data.Index} sent");
 			DebugResponse(response);
 		}
