@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BlockChanPro.Core.Contracts;
@@ -59,18 +58,18 @@ namespace BlockChanPro.Core.Engine
 			if (_chainData.GetLastBlock() == null)
 				await MineGenesisAsync(numberOfThreads);
 
+			Miner miner;
 			do
 			{
 				_minerSync.Wait();
 				var lastBlock = _chainData.GetLastBlock();
 				var transactions = _chainData.SelectTransactionsToMine();
 
-				var miner = await MineAsync(mineAddress, numberOfThreads, lastBlock, transactions);
-				if (miner.Stopped)
-					break;
-				numberOfThreads = miner.Threads;// In case number of threads was canceled
+				miner = await MineAsync(mineAddress, numberOfThreads, lastBlock, transactions);
+				// Start next miner with same number of threads in case they was changed
+				numberOfThreads = miner.Threads;
 
-			} while (true);
+			} while (!miner.Stopped);
 		}
 
 		public async Task<Miner> MineAsync(Address mineAddress, int? numberOfThreads, BlockHashed lastBlock, IEnumerable<TransactionSigned> transactions)
@@ -178,6 +177,10 @@ namespace BlockChanPro.Core.Engine
 				_blockchainSync = BlockchainSync(syncCompletedAction);
 		}
 
+		public void StartBlockchainSync()
+		{
+			StartBlockchainSync(() => {});
+		}
 		private async Task BlockchainSync(Action syncCompletedAction)
 		{
 			try

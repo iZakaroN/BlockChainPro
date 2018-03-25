@@ -35,6 +35,7 @@ namespace BlockChanPro.Console
 		{
 			{"Wallet.Create", WalletCreate },
 			{"Wallet.Recover", WalletRecover },
+			{"Block.Sync", BlockSync},
 			{"Mine.Start", MineStart },
 			{"Mine.Stop", MineStop },
 			{"Connect", ConnectToPeer },
@@ -260,6 +261,11 @@ namespace BlockChanPro.Console
 		{
 			ConsoleFeedback.OutLine(exitMessage);
 			_exitConsole = true;
+		}
+
+		private static void BlockSync(Queue<string> arg)
+		{
+			_dependencies.Engine.StartBlockchainSync();
 		}
 
 		private static void MineStart(Queue<string> arg)
